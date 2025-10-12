@@ -155,7 +155,7 @@ def tags2text(soup: bs4.BeautifulSoup):
         # Headings
         if tag.name.startswith('h') and tag.name[1:].isdigit():
             level = int(tag.name[1:])
-            tag.replace_with(f"{'#' * level} *{tag.string}*")
+            tag.replace_with(f"{'#' * level} *{tag.string}*\n")
             return
         # Quotes
         if tag.name == "blockquote":
@@ -194,6 +194,8 @@ def tags2text(soup: bs4.BeautifulSoup):
             tag.replace_with(tag.string + "\t")
             return
         # TBD with link blocks
+        if tag.name in {"p", "ol", "ul"}:
+            tag.string += "\n"
         if tag.name in {"body", "section", "div", "p", "ol", "ul"}:
             text = str(tag.string)
             if link_map:
