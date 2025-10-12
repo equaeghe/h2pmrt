@@ -5,6 +5,7 @@ import h2pmrt.css as css
 import h2pmrt.undo as undo
 import h2pmrt.html as html
 
+
 def convert(html_string: str) -> str:
     """Convert html to poor man's rich text"""
     soup = bs4.BeautifulSoup(text.cleanup(html_string), "html5lib")
