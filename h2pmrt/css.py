@@ -22,15 +22,12 @@ def css2tags(soup: bs4.BeautifulSoup) -> bs4.BeautifulSoup:
         if any(value.startswith("bold")
                for value in applied.get("font-weight", [])):
             wrap_children(soup, tag, "b")
-            # tag = tag.wrap(soup.new_tag("b"))
         if any(value in {"italic", "oblique"}
                for value in applied.get("font-style", [])):
             wrap_children(soup, tag, "i")
-            # tag = tag.wrap(soup.new_tag("i"))
         if any(value.startswith("underline")
                for value in applied.get("text-decoration", [])):
             wrap_children(soup, tag, "u")
-            # tag = tag.wrap(soup.new_tag("u"))
         for border_key in {"border", "border-top"}:
             if any(value in {"solid", "dashed", "double"}
                    for value in applied.get(border_key, [])):
