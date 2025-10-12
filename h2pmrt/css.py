@@ -19,14 +19,17 @@ def css2tags(soup: bs4.BeautifulSoup) -> bs4.BeautifulSoup:
                                       if isinstance(value, tc2.ast.IdentToken)]
         del tag["style"]
         # Apply formatting
-        if any(value.startswith("bold")
-               for value in applied.get("font-weight", [])):
+        if (any(value.startswith("bold")
+               for value in applied.get("font-weight", []))
+            and tag.name not in {"b", "strong"}):
             wrap_children(soup, tag, "b")
-        if any(value in {"italic", "oblique"}
-               for value in applied.get("font-style", [])):
+        if (any(value in {"italic", "oblique"}
+               for value in applied.get("font-style", []))
+            and tag.name not in {"i", "em"}):
             wrap_children(soup, tag, "i")
-        if any(value.startswith("underline")
-               for value in applied.get("text-decoration", [])):
+        if (any(value.startswith("underline")
+               for value in applied.get("text-decoration", []))
+            and tag.name != "u"):
             wrap_children(soup, tag, "u")
         for border_key in {"border", "border-top"}:
             if any(value in {"solid", "dashed", "double"}
