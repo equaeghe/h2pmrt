@@ -1,8 +1,6 @@
 from typing_extensions import Dict
 import bs4
 
-import h2pmrt.undo as undo
-
 
 VOIDS = {"br", "hr", "img", "col"}
 MERGEABLE = {"b", "strong", "i", "em"}
@@ -26,6 +24,7 @@ def remove_empty(soup: bs4.BeautifulSoup):
         maybe_some_empty_still = False
         for tag in soup.find_all(lambda tag: tag.name not in VOIDS,
                                  string=None):
+            assert isinstance(tag, bs4.Tag)
             if list(tag.children) == []:
                 tag.decompose()
                 maybe_some_empty_still = True # decompose may create empty tags
@@ -34,6 +33,7 @@ def remove_empty(soup: bs4.BeautifulSoup):
 def unwrap_spans(soup: bs4.BeautifulSoup):
     """Unwrap all spans"""
     for tag in soup("span"):
+        assert isinstance(tag, bs4.Tag)
         tag.unwrap()
 
 
@@ -56,6 +56,7 @@ def merge_markup(soup: bs4.BeautifulSoup):
                 tag = siblings.pop()
                 mergeable_tags = []
                 next_tag = tag.next_sibling
+                assert next_tag is not None
                 if (isinstance(next_tag, bs4.NavigableString)
                     and str(next_tag).isspace()):
                     # deal with whitespace
@@ -63,8 +64,8 @@ def merge_markup(soup: bs4.BeautifulSoup):
                     mergeable_tags.append(ws_tag)
                     next_tag = ws_tag.next_sibling
                     ws_tag.decompose()
-                mergeable = next_tag == siblings[-1]
-                if mergeable:
+                if next_tag is not None and next_tag == siblings[-1]:
+                    assert isinstance(next_tag, bs4.Tag)
                     # we can merge something
                     print(next_tag)
                     mergeable_tags.extend(next_tag.contents)
@@ -115,10 +116,11 @@ def tags2text(soup: bs4.BeautifulSoup):
             tag.replace_with(replacement)
 
     # Images
-    for tag in soup("img"):
-        img_src = str(tag.get("src", ""))
-        alt_text = str(tag.get("alt", ""))
-        tag.replace_with("{" + alt_text + ": " + img_src + "}")
+    for img in soup("img"):
+        assert isinstance(img, bs4.Tag)
+        img_src = str(img.get("src", ""))
+        alt_text = str(img.get("alt", ""))
+        img.replace_with("{" + alt_text + ": " + img_src + "}")
 
     # Other tags
     def process_tag(tag: bs4.Tag):
@@ -143,9 +145,8 @@ def tags2text(soup: bs4.BeautifulSoup):
             return
         else:
             print(f"+{tag.name}", end="")
-        # Check whether there is a single string (if not, it is a bug)
-        if not tag.string:
-            raise ValueError(f"string missing from {tag.name}:\n{tag.prettify()}with parent {tag.parent.name} and as children {[child.name for child in tag.children]}")
+        # It is a bug if tag does not have a (single) string at this point
+        assert tag.string is not None
         # Markup
         for tags, delimiter in MARKUP_MAP.items():
             if tag.name in tags:
