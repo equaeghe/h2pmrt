@@ -96,7 +96,6 @@ def merge_markup(soup: bs4.BeautifulSoup):
                 if next_tag is not None and next_tag == siblings[-1]:
                     assert isinstance(next_tag, bs4.Tag)
                     # we can merge something
-                    print(next_tag)
                     mergeable_tags.extend(next_tag.contents)
                     siblings.pop()
                     next_tag.decompose()
