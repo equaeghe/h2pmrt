@@ -120,7 +120,7 @@ def tags2text(soup: bs4.BeautifulSoup):
         assert isinstance(img, bs4.Tag)
         img_src = str(img.get("src", ""))
         alt_text = str(img.get("alt", ""))
-        img.replace_with("{" + alt_text + ": " + img_src + "}")
+        img.replace_with("{" + alt_text + ": " + img_src + "}\n")
 
     # Other tags
     def process_tag(tag: bs4.Tag):
