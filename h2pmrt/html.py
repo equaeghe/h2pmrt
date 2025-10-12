@@ -125,26 +125,28 @@ def tags2text(soup: bs4.BeautifulSoup):
     # Other tags
     def process_tag(tag: bs4.Tag):
         """Recursively replace composite tags by poor man's rich texts"""
-        print(f".{tag.name.upper()}", end="")
+        # print(f".{tag.name.upper()}", end="")
         children = list(tag.children)
         # Recurse
         if len(children) > 0:
-            print(len(children), end="")
+            # print(len(children), end="")
             for child in children:
                 if isinstance(child, bs4.Tag):
                     process_tag(child)
                 else:
-                    print("_", end="")
+                    pass
+                    # print("_", end="")
             # Merge strings
             tag.smooth()
         # Before continuing make really sure tags have a single string
         # Remove empty tags
         if list(tag.children) == []:
-            print(f"/{tag.name}", end="")
+            # print(f"/{tag.name}", end="")
             tag.decompose()
             return
         else:
-            print(f"+{tag.name}", end="")
+            pass
+            # print(f"+{tag.name}", end="")
         # It is a bug if tag does not have a (single) string at this point
         assert tag.string is not None
         # Markup
