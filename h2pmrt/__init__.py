@@ -20,5 +20,6 @@ def convert(html_string: str) -> str:
     html.remove_empty(soup)
     html.merge_markup(soup)
     soup = bs4.BeautifulSoup(text.cleanup(str(soup)), "html5lib")
+    html.linebreak_blocks(soup)
     html.tags2text(soup)
     return str(soup.string)

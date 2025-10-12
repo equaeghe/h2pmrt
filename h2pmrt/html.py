@@ -1,13 +1,29 @@
 from typing_extensions import Dict
 import bs4
 
-
+BLOCKS = {
+    "address", "article", "aside",
+    "blockquote",
+    "canvas",
+    "dd", "div", "dl", "dt",
+    "fieldset", "figcaption", "figure", "footer", "form",
+    "h1", "h2", "h3", "h4", "h5", "h6", "header", "hr",
+    "li",
+    "main",
+    "nav", "noscript",
+    "ol",
+    "p", "pre",
+    "section",
+    "table", "tbody", "tfoot", "thead",
+    "ul",
+    "video"
+}
 VOIDS = {"br", "hr", "img", "col"}
 MERGEABLE = {"b", "strong", "i", "em"}
 SWEATABLE = {"a", "b", "strong", "i", "em", "u", "s"}
 REPLACEMENTS = {
     "br": "\n",
-    "hr": "\n" + "_" * 79 + "\n"
+    "hr": "_" * 79
 }
 MARKUP_MAP = {
     ("b", "strong"): "*",
@@ -104,6 +120,22 @@ def merge_markup(soup: bs4.BeautifulSoup):
             parent.smooth()
 
 
+def linebreak_blocks(soup: bs4.BeautifulSoup):
+    """Add a linebreak between sibling block elements"""
+    sibling_map = dict()
+    for tag in soup(list(BLOCKS)):
+        parent = tag.parent
+        if parent not in sibling_map:
+            sibling_map[parent] = [tag]
+        else:
+            sibling_map[parent].append(tag)
+    for siblings in sibling_map.values():
+        siblings.pop()
+        for sibling in siblings:
+            linebreak = bs4.NavigableString("\n")
+            sibling.insert_after(linebreak)
+
+
 def tags2text(soup: bs4.BeautifulSoup):
     """Replace tags by poor man's rich text"""
     link_counter : int = 1
@@ -119,7 +151,7 @@ def tags2text(soup: bs4.BeautifulSoup):
         assert isinstance(img, bs4.Tag)
         img_src = str(img.get("src", ""))
         alt_text = str(img.get("alt", ""))
-        img.replace_with("{" + alt_text + ": " + img_src + "}\n")
+        img.replace_with("{" + alt_text + ": " + img_src + "}")
 
     # Other tags
     def process_tag(tag: bs4.Tag):
@@ -156,7 +188,7 @@ def tags2text(soup: bs4.BeautifulSoup):
         # Headings
         if tag.name.startswith('h') and tag.name[1:].isdigit():
             level = int(tag.name[1:])
-            tag.replace_with(f"{'#' * level} *{tag.string}*\n")
+            tag.replace_with(f"{'#' * level} *{tag.string}*")
             return
         # Quotes
         if tag.name == "blockquote":
@@ -189,14 +221,20 @@ def tags2text(soup: bs4.BeautifulSoup):
             tag.unwrap()
             return
         if tag.name == "tr":
-            tag.replace_with(tag.string + "\n")
+            if (isinstance(tag.next_sibling, bs4.Tag)
+                and tag.next_sibling.name == "tr"):
+                tag.replace_with(tag.string + "\n")
+            else:
+                tag.unwrap()
             return
         if tag.name in {"th", "td"}:
-            tag.replace_with(tag.string + "\t")
+            if (isinstance(tag.next_sibling, bs4.Tag)
+                and tag.next_sibling.name in {"th", "td"}):
+                tag.replace_with(tag.string + "\t")
+            else:
+                tag.unwrap()
             return
         # TBD with link blocks
-        if tag.name in {"p", "ol", "ul"}:
-            tag.string += "\n"
         if tag.name in {"body", "section", "div", "p", "ol", "ul"}:
             text = str(tag.string)
             if link_map:
@@ -205,7 +243,7 @@ def tags2text(soup: bs4.BeautifulSoup):
                     for ref, index in sorted(link_map.items(),
                                              key=lambda pair: pair[1])]
                 link_block = "\n".join(link_list)
-                text += "\n\n" + link_block + "\n\n"
+                text += "\n\n" + link_block + "\n"
             tag.replace_with(text)
             link_map.clear()
             return
