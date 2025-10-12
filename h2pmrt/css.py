@@ -6,7 +6,7 @@ def css2tags(soup: bs4.BeautifulSoup) -> bs4.BeautifulSoup:
     """Convert CSS styles to html markup"""
 
     # Inline style blocks
-    # TODO: use Pyhon bindings of https://github.com/Stranger6667/css-inline
+    # TODO: use Python bindings of https://github.com/Stranger6667/css-inline
 
     for tag in soup.css.select("[style]"):
         # Find rules applied
