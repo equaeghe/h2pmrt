@@ -37,6 +37,35 @@ def unwrap_spans(soup: bs4.BeautifulSoup):
         tag.unwrap()
 
 
+def sweat_whitespace(soup: bs4.BeautifulSoup):
+    """Iteratively move trimmable whitespace outside of tags"""
+    sweating = True
+    while sweating:
+        sweating = False
+        for string in soup(string=True):
+            parent = string.parent
+            if isinstance(parent, bs4.Tag) and parent.name in SWEATABLE:
+                # Strip
+                unstripped = str(string)
+                strippable = unstripped
+                # Add left
+                lws = unstripped[:len(unstripped)-len(unstripped.lstrip())]
+                if lws and not string.previous_sibling:
+                    lws = bs4.NavigableString(lws)
+                    parent.insert_before(lws)
+                    strippable = strippable.lstrip()
+                    sweating = True
+                # Add right
+                rws = unstripped[len(unstripped.rstrip()):]
+                if rws and not string.next_sibling:
+                    rws = bs4.NavigableString(rws)
+                    parent.insert_after(rws)
+                    strippable = strippable.rstrip()
+                    sweating = True
+                # Add properly stripped back
+                string.replace_with(strippable)
+
+
 def merge_markup(soup: bs4.BeautifulSoup):
     """Merge adjacent markup tags"""
     soup.smooth()  # make sure there are no adjacent NavigableStrings
@@ -74,35 +103,6 @@ def merge_markup(soup: bs4.BeautifulSoup):
                     tag.extend(mergeable_tags)
                     siblings.append(tag)  # may be more to merge in later
             parent.smooth()
-
-
-def sweat_whitespace(soup: bs4.BeautifulSoup):
-    """Iteratively move trimmable whitespace outside of tags"""
-    sweating = True
-    while sweating:
-        sweating = False
-        for string in soup(string=True):
-            parent = string.parent
-            if isinstance(parent, bs4.Tag) and parent.name in SWEATABLE:
-                # Strip
-                unstripped = str(string)
-                strippable = unstripped
-                # Add left
-                lws = unstripped[:len(unstripped)-len(unstripped.lstrip())]
-                if lws and not string.previous_sibling:
-                    lws = bs4.NavigableString(lws)
-                    parent.insert_before(lws)
-                    strippable = strippable.lstrip()
-                    sweating = True
-                # Add right
-                rws = unstripped[len(unstripped.rstrip()):]
-                if rws and not string.next_sibling:
-                    rws = bs4.NavigableString(rws)
-                    parent.insert_after(rws)
-                    strippable = strippable.rstrip()
-                    sweating = True
-                # Add properly stripped back
-                string.replace_with(strippable)
 
 
 def tags2text(soup: bs4.BeautifulSoup):
