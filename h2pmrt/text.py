@@ -1,6 +1,7 @@
 import minify_html as mh
 import re
 
+
 re_brn = re.compile(r"(<br(?: /)>)\n+")
 
 

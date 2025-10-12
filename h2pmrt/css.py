@@ -1,6 +1,7 @@
 import bs4
 import tinycss2 as tc2
 
+
 def css2tags(soup: bs4.BeautifulSoup) -> bs4.BeautifulSoup:
     """Convert CSS styles to html markup"""
 
@@ -39,6 +40,7 @@ def css2tags(soup: bs4.BeautifulSoup) -> bs4.BeautifulSoup:
                    for value in applied.get(border_key, [])):
                 tag.insert_after(soup.new_tag("hr"))
     return soup
+
 
 def wrap_children(soup: bs4.BeautifulSoup,
                   parent_tag: bs4.Tag, wrapping_tag_name: str):
