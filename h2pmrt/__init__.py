@@ -19,5 +19,6 @@ def convert(html_string: str) -> str:
     html.sweat_whitespace(soup)
     html.remove_empty(soup)
     html.merge_markup(soup)
+    soup = bs4.BeautifulSoup(text.cleanup(str(soup)), "html5lib")
     html.tags2text(soup)
     return str(soup.string)
