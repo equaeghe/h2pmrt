@@ -24,10 +24,6 @@ BLOCKS = {
 }
 MERGEABLE = {"b", "strong", "i", "em"}
 SWEATABLE = {"a", "b", "strong", "i", "em", "u", "s"}
-REPLACEMENTS = {
-    "br": "\n",
-    "hr": "_" * 79
-}
 MARKUP_MAP = {
     ("b", "strong"): "*",
     ("i", "em"): "/",
@@ -136,6 +132,40 @@ def merge_markup(soup: bs4.BeautifulSoup):
             parent.smooth()
 
 
+def replace_hrs(soup: bs4.BeautifulSoup):
+    """Replace hr tags with 79 underscores"""
+    for tag in soup("hr"):
+        tag.replace_with("_" * 79 + "\n")
+
+
+def replace_brs(soup: bs4.BeautifulSoup):
+    """Replace br tags with a linebreak"""
+    for tag in soup("br"):
+        if (tag.parent and tag.parent.next_sibling
+            and tag.parent.name in BLOCKS
+            and len(list(tag.parent.children)) == 1):
+            # deal with implicit linebreak
+            tag.parent.replace_with("\n")
+        else:
+            tag.replace_with("\n")
+
+
+def replace_imgs(soup: bs4.BeautifulSoup):
+    """Replace img tags with approprate text representation"""
+    for img in soup("img"):
+        assert isinstance(img, bs4.Tag)
+        img_src = str(img.get("src", ""))
+        alt_text = str(img.get("alt", ""))
+        img.replace_with("{" + alt_text + ": " + img_src + "}")
+
+
+def direct_replacements(soup: bs4.BeautifulSoup):
+    """Replace some classes of tags directly"""
+    replace_hrs(soup)
+    replace_brs(soup)
+    replace_imgs(soup)
+
+
 def linebreak_blocks(soup: bs4.BeautifulSoup):
     """Add a linebreak between sibling block elements"""
     sibling_map = dict()
@@ -157,19 +187,6 @@ def tags2text(soup: bs4.BeautifulSoup):
     link_counter : int = 1
     link_map : Dict[str, int] = dict()
 
-    # Directly replaceable tags
-    for tag_name, replacement in REPLACEMENTS.items():
-        for tag in soup(tag_name):
-            tag.replace_with(replacement)
-
-    # Images
-    for img in soup("img"):
-        assert isinstance(img, bs4.Tag)
-        img_src = str(img.get("src", ""))
-        alt_text = str(img.get("alt", ""))
-        img.replace_with("{" + alt_text + ": " + img_src + "}")
-
-    # Other tags
     def process_tag(tag: bs4.Tag):
         """Recursively replace composite tags by poor man's rich texts"""
         # print(f".{tag.name.upper()}", end="")
