@@ -1,5 +1,7 @@
 from typing_extensions import Dict
 import bs4
+import re
+
 
 BLOCKS = {
     "address", "article", "aside",
@@ -49,6 +51,13 @@ def remove_empty(soup: bs4.BeautifulSoup):
 def unwrap_spans(soup: bs4.BeautifulSoup):
     """Unwrap all spans"""
     for tag in soup("span"):
+        assert isinstance(tag, bs4.Tag)
+        tag.unwrap()
+
+
+def unwrap_msoffice_tags(soup: bs4.BeautifulSoup):
+    """Unwrap all MS Office-specific tags"""
+    for tag in soup(re.compile("^o:")):
         assert isinstance(tag, bs4.Tag)
         tag.unwrap()
 
