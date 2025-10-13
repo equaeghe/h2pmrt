@@ -16,6 +16,7 @@ def convert(html_string: str) -> str:
     undo.link_rewriting(soup)
     html.remove_empty(soup)
     html.unwrap_spans(soup)
+    html.unwrap_msoffice_tags(soup)
     html.sweat_whitespace(soup)
     html.remove_empty(soup)
     html.merge_markup(soup)
