@@ -195,6 +195,11 @@ def tags2text(soup: bs4.BeautifulSoup):
             if tag.name in tags:
                 tag.replace_with(delimiter + tag.string + delimiter)
                 return
+        # Vertical placement
+        if tag.name == "sup":
+            tag.replace_with("^" + tag.string)
+        if tag.name == "sub":
+            tag.replace_with("_" + tag.string)
         # Headings
         if tag.name.startswith('h') and tag.name[1:].isdigit():
             level = int(tag.name[1:])
