@@ -63,6 +63,12 @@ def unwrap_msoffice_tags(soup: bs4.BeautifulSoup):
         tag.unwrap()
 
 
+def direct_unwraps(soup: bs4.BeautifulSoup):
+    """Unwrap some classes of tags directly"""
+    unwrap_spans(soup)
+    unwrap_msoffice_tags(soup)
+
+
 def sweat_whitespace(soup: bs4.BeautifulSoup):
     """Iteratively move trimmable whitespace outside of tags"""
     sweating = True
