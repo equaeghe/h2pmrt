@@ -133,7 +133,7 @@ def merge_markup(soup: bs4.BeautifulSoup):
 def linebreak_blocks(soup: bs4.BeautifulSoup):
     """Add a linebreak between sibling block elements"""
     sibling_map = dict()
-    for tag in soup(list(BLOCKS)):
+    for tag in soup(BLOCKS):
         parent = tag.parent
         if parent not in sibling_map:
             sibling_map[parent] = [tag]
