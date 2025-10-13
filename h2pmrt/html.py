@@ -3,6 +3,8 @@ import bs4
 import re
 
 
+VOIDS = {"br", "hr", "img", "col"}
+SPAN_LIKE = {"span", "font"}
 BLOCKS = {
     "address", "article", "aside",
     "blockquote",
@@ -20,7 +22,6 @@ BLOCKS = {
     "ul",
     "video"
 }
-VOIDS = {"br", "hr", "img", "col"}
 MERGEABLE = {"b", "strong", "i", "em"}
 SWEATABLE = {"a", "b", "strong", "i", "em", "u", "s"}
 REPLACEMENTS = {
@@ -49,8 +50,8 @@ def remove_empty(soup: bs4.BeautifulSoup):
 
 
 def unwrap_spans(soup: bs4.BeautifulSoup):
-    """Unwrap all spans"""
-    for tag in soup("span"):
+    """Unwrap all span-like tags"""
+    for tag in soup(SPAN_LIKE):
         assert isinstance(tag, bs4.Tag)
         tag.unwrap()
 
