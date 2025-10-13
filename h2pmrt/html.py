@@ -208,7 +208,11 @@ def tags2text(soup: bs4.BeautifulSoup):
         if tag.name == "a":
             href = str(tag.get("href", ""))
             text = str(tag.string)
-            if href.endswith(text):
+            if href.startswith("mailto:") or href.startswith("phone:"):
+                if href.endswith(":" + text):
+                    tag.replace_with(text)
+                    return
+            elif href.endswith("://" + text):
                 tag.replace_with(href)
                 return
             title = tag.get("title")
