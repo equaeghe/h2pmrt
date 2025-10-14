@@ -241,7 +241,7 @@ def tags2text(soup: bs4.BeautifulSoup):
                 if href.endswith(":" + text):
                     tag.replace_with(text)
                     return
-            elif href.endswith("://" + text):
+            elif href == text or href.endswith("://" + text):
                 tag.replace_with(href)
                 return
             title = tag.get("title")
