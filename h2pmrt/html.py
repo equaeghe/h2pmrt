@@ -167,15 +167,12 @@ def direct_replacements(soup: bs4.BeautifulSoup):
 
 
 def linebreak_blocks(soup: bs4.BeautifulSoup):
-    """Add a linebreak between sibling block elements"""
-    sibling_map = dict()
+    """Add a linebreak between sibling block-like elements"""
+    parents = set()
     for tag in soup(BLOCKS):
-        parent = tag.parent
-        if parent not in sibling_map:
-            sibling_map[parent] = [tag]
-        else:
-            sibling_map[parent].append(tag)
-    for siblings in sibling_map.values():
+        parents.add(tag.parent)
+    for parent in parents:
+        siblings = list(parent.children)
         siblings.pop()
         for sibling in siblings:
             linebreak = bs4.NavigableString("\n")
