@@ -2,7 +2,7 @@ import minify_html as mh
 import re
 
 
-re_brn = re.compile(r"(<br(?: /)>)\n+")
+re_brn = re.compile(r"(<br ?/?>)\n+")
 
 
 def cleanup(html_string: str) -> str:
