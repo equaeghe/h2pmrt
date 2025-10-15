@@ -273,6 +273,10 @@ def tags2text(soup: bs4.BeautifulSoup):
             else:
                 tag.unwrap()
             return
+        # Lists
+        if tag.name == "li":
+            tag.unwrap()
+            return
         # TBD with link blocks
         if tag.name in {"body", "section", "div", "p", "ol", "ul"}:
             text = str(tag.string)
