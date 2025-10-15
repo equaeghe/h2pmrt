@@ -276,15 +276,16 @@ def tags2text(soup: bs4.BeautifulSoup):
         # TBD with link blocks
         if tag.name in {"body", "section", "div", "p", "ol", "ul"}:
             text = str(tag.string)
-            if link_map:
+            if (link_map and (tag.name == "body" or
+                tag.parent.name in {"body", "section", "div", "p", "ol", "ul"})):
                 # Add list of tags after large enough bodies of text
                 link_list = [f"\t[{index}]: {ref}"
                     for ref, index in sorted(link_map.items(),
                                              key=lambda pair: pair[1])]
                 link_block = "\n".join(link_list)
                 text += "\n\n" + link_block + "\n"
+                link_map.clear()
             tag.replace_with(text)
-            link_map.clear()
             return
 
     process_tag(soup)
