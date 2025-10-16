@@ -9,7 +9,7 @@ import h2pmrt.html as html
 def convert(html_string: str) -> str:
     """Convert html to poor man's rich text"""
     soup = bs4.BeautifulSoup(text.cleanup(html_string), "html5lib")
-    soup = css.css2tags(soup)
+    css.css2tags(soup)
     if soup.body:
         soup = soup.body
     undo.ms_sender_identification(soup)

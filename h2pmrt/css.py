@@ -2,7 +2,7 @@ import bs4
 import tinycss2 as tc2
 
 
-def css2tags(soup: bs4.BeautifulSoup) -> bs4.BeautifulSoup:
+def css2tags(soup: bs4.BeautifulSoup):
     """Convert CSS styles to html markup"""
 
     # Inline style blocks
@@ -39,7 +39,6 @@ def css2tags(soup: bs4.BeautifulSoup) -> bs4.BeautifulSoup:
             if any(value in {"solid", "dashed", "double"}
                    for value in applied.get(border_key, [])):
                 tag.insert_after(soup.new_tag("hr"))
-    return soup
 
 
 def wrap_children(soup: bs4.BeautifulSoup,
