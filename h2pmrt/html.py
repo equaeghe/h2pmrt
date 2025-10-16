@@ -145,7 +145,7 @@ def replace_brs(soup: bs4.BeautifulSoup):
             and tag.parent.name in BLOCKS
             and len(list(tag.parent.children)) == 1):
             # deal with implicit linebreak
-            tag.parent.replace_with("\n")
+            tag.decompose()
         else:
             tag.replace_with("\n")
 
