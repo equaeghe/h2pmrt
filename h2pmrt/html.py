@@ -32,39 +32,6 @@ MARKUP_MAP = {
 }
 
 
-def remove_empty(soup: bs4.BeautifulSoup):
-    """Iteratively remove empty tags"""
-    maybe_some_empty_still = True
-    while maybe_some_empty_still:
-        maybe_some_empty_still = False
-        for tag in soup.find_all(lambda tag: tag.name not in VOIDS,
-                                 string=None):
-            assert isinstance(tag, bs4.Tag)
-            if list(tag.children) == []:
-                tag.decompose()
-                maybe_some_empty_still = True # decompose may create empty tags
-
-
-def unwrap_spans(soup: bs4.BeautifulSoup):
-    """Unwrap all span-like tags"""
-    for tag in soup(SPAN_LIKE):
-        assert isinstance(tag, bs4.Tag)
-        tag.unwrap()
-
-
-def unwrap_msoffice_tags(soup: bs4.BeautifulSoup):
-    """Unwrap all MS Office-specific tags"""
-    for tag in soup(re.compile("^o:")):
-        assert isinstance(tag, bs4.Tag)
-        tag.unwrap()
-
-
-def direct_unwraps(soup: bs4.BeautifulSoup):
-    """Unwrap some classes of tags directly"""
-    unwrap_spans(soup)
-    unwrap_msoffice_tags(soup)
-
-
 def sweat_whitespace(soup: bs4.BeautifulSoup):
     """Iteratively move trimmable whitespace outside of tags"""
     sweating = True
@@ -92,6 +59,52 @@ def sweat_whitespace(soup: bs4.BeautifulSoup):
                     sweating = True
                 # Add properly stripped back
                 string.replace_with(strippable)
+
+
+def linebreak_blocks(soup: bs4.BeautifulSoup):
+    """Add a linebreak between sibling block-like elements"""
+    parents = set()
+    for tag in soup(BLOCKS):
+        parents.add(tag.parent)
+    for parent in parents:
+        siblings = list(parent.children)
+        siblings.pop()
+        for sibling in siblings:
+            linebreak = bs4.NavigableString("\n")
+            sibling.insert_after(linebreak)
+
+
+def unwrap_spans(soup: bs4.BeautifulSoup):
+    """Unwrap all span-like tags"""
+    for tag in soup(SPAN_LIKE):
+        assert isinstance(tag, bs4.Tag)
+        tag.unwrap()
+
+
+def unwrap_msoffice_tags(soup: bs4.BeautifulSoup):
+    """Unwrap all MS Office-specific tags"""
+    for tag in soup(re.compile("^o:")):
+        assert isinstance(tag, bs4.Tag)
+        tag.unwrap()
+
+
+def direct_unwraps(soup: bs4.BeautifulSoup):
+    """Unwrap some classes of tags directly"""
+    unwrap_spans(soup)
+    unwrap_msoffice_tags(soup)
+
+
+def remove_empty(soup: bs4.BeautifulSoup):
+    """Iteratively remove empty tags"""
+    maybe_some_empty_still = True
+    while maybe_some_empty_still:
+        maybe_some_empty_still = False
+        for tag in soup.find_all(lambda tag: tag.name not in VOIDS,
+                                 string=None):
+            assert isinstance(tag, bs4.Tag)
+            if list(tag.children) == []:
+                tag.decompose()
+                maybe_some_empty_still = True # decompose may create empty tags
 
 
 def merge_markup(soup: bs4.BeautifulSoup):
@@ -164,19 +177,6 @@ def direct_replacements(soup: bs4.BeautifulSoup):
     replace_hrs(soup)
     replace_brs(soup)
     replace_imgs(soup)
-
-
-def linebreak_blocks(soup: bs4.BeautifulSoup):
-    """Add a linebreak between sibling block-like elements"""
-    parents = set()
-    for tag in soup(BLOCKS):
-        parents.add(tag.parent)
-    for parent in parents:
-        siblings = list(parent.children)
-        siblings.pop()
-        for sibling in siblings:
-            linebreak = bs4.NavigableString("\n")
-            sibling.insert_after(linebreak)
 
 
 def tags2text(soup: bs4.BeautifulSoup):
