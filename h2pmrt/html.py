@@ -154,8 +154,7 @@ def replace_hrs(soup: bs4.BeautifulSoup):
 def replace_brs(soup: bs4.BeautifulSoup):
     """Replace br tags with a linebreak"""
     for tag in soup("br"):
-        if (tag.parent and tag.parent.next_sibling
-            and tag.parent.name in BLOCKS
+        if (tag.parent and tag.parent.name in BLOCKS
             and len(list(tag.parent.children)) == 1):
             # deal with implicit linebreak
             tag.decompose()
