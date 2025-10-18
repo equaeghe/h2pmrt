@@ -66,11 +66,9 @@ def linebreak_blocks(soup: bs4.BeautifulSoup):
             previous = block_sibling.previous_sibling
             next = block_sibling.next_sibling
             if previous:
-                print("insert before")
                 linebreak = bs4.NavigableString("\n")
                 block_sibling.insert_before(linebreak)
             if next and next.name not in BLOCKS:
-                print("insert after")
                 linebreak = bs4.NavigableString("\n")
                 block_sibling.insert_after(linebreak)
 
