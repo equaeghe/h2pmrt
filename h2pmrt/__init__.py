@@ -23,6 +23,10 @@ def convert(html_string: str) -> str:
     html.remove_empty(soup)
     html.merge_markup(soup)
     html.direct_replacements(soup)
+    img_refs = html.replace_imgs(soup)
     html.markup2text(soup)
     html.tags2text(soup)
-    return str(soup.string)
+    output = str(soup.string)
+    if img_refs:
+        output += "\n\n***\n\n" + img_refs
+    return output
