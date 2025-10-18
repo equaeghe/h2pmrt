@@ -2,48 +2,62 @@ import bs4
 import tinycss2 as tc2
 
 
-def css2tags(soup: bs4.BeautifulSoup):
-    """Convert CSS styles to html markup"""
+def cssprops2htmlattrs(soup: bs4.BeautifulSoup):
+    """Convert CSS properties to HTML attributes"""
+    PROPERTIES_OF_INTEREST = {
+        "border", "border-top", "border-bottom",
+        "font-weight", "font-style", "text-decoration",
+        "list-style-type"
+    }
+    UNINTERESTING_TOKENS = {
+        tc2.ast.WhitespaceToken, tc2.ast.LiteralToken, tc2.ast.FunctionBlock
+    }
 
     # Inline style blocks
     # TODO: use Python bindings of https://github.com/Stranger6667/css-inline
 
     for tag in soup.css.select("[style]"):
         # Find rules applied
-        applied = {}
         declarations = tc2.parse_blocks_contents(tag["style"],
             skip_comments=True, skip_whitespace=True)
         for decl in declarations:
-            if decl.type == "declaration":
-                applied[decl.name] = [value.lower_value for value in decl.value
-                                      if isinstance(value, tc2.ast.IdentToken)]
+            if (decl.type == "declaration" and
+                decl.name in PROPERTIES_OF_INTEREST):
+                tag["css-" + decl.name] = str([
+                    value.value for value in decl.value
+                    if not isinstance(value, tuple(UNINTERESTING_TOKENS))
+                    ][-1])
         del tag["style"]
-        # Apply formatting
-        if (any(value.startswith("bold")
-               for value in applied.get("font-weight", []))
-            and tag.name not in {"b", "strong"}):
-            wrap_children(soup, tag, "b")
-        if (any(value in {"italic", "oblique"}
-               for value in applied.get("font-style", []))
-            and tag.name not in {"i", "em"}):
-            wrap_children(soup, tag, "i")
-        if (any(value.startswith("underline")
-               for value in applied.get("text-decoration", []))
-            and tag.name != "u"):
-            wrap_children(soup, tag, "u")
-        for border_key in {"border", "border-top"}:
-            if any(value in {"solid", "dashed", "double"}
-                   for value in applied.get(border_key, [])):
-                tag.insert_before(soup.new_tag("hr"))
-        for border_key in {"border", "border-bottom"}:
-            if any(value in {"solid", "dashed", "double"}
-                   for value in applied.get(border_key, [])):
-                tag.insert_after(soup.new_tag("hr"))
 
 
-def wrap_children(soup: bs4.BeautifulSoup,
-                  parent_tag: bs4.Tag, wrapping_tag_name: str):
-    wrapper = soup.new_tag(wrapping_tag_name)
-    for content in reversed(parent_tag.contents):
-        wrapper.insert(0, content.extract())
-    parent_tag.append(wrapper)
+def css2html_markup(soup: bs4.BeautifulSoup):
+    """Convert CSS markup to HTML markup tags"""
+    CSS_MARKUP = {
+        "b": "[css-font-weight^=bold]:not(b, strong)",
+        "i": ",".join(f"[css-font-style={style}]:not(i, em)"
+                      for style in {"italic", "oblique"}),
+        "u": "[css-text-decoration^=underline]:not(u)"
+    }
+    for markup_tag_name, selection in CSS_MARKUP.items():
+        for tag in soup.select(selection):
+            wrapper = soup.new_tag(markup_tag_name)
+            wrapper.extend(tag.contents)
+            tag.clear()
+            tag.append(wrapper)
+
+
+def cssborder2hr(soup: bs4.BeautifulSoup):
+    """Convert CSS border properties to styled hr tags"""
+    STYLES = {"dotted",	"dashed", "solid", "double",
+              "groove", "ridge", "inset", "outset"}
+    CSS_BORDERS = {property: ",".join(f"[css-{property}={style}]:not(hr)"
+                                      for style in STYLES)
+                   for property in {"border", "border-top", "border-bottom"}}
+    for property, selection in CSS_BORDERS.items():
+        for tag in soup.select(selection):
+            hr = soup.new_tag("hr")
+            hr[f"css-{property}"] = tag[f"css-{property}"]
+            if property in {"border", "border-top"}:
+                tag.insert_before(hr)
+            if property in {"border", "bordor-bottom"}:
+                tag.insert_after(hr)
