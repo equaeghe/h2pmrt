@@ -36,7 +36,7 @@ def css2html_markup(soup: bs4.BeautifulSoup):
         "b": "[css-font-weight^=bold]:not(b, strong)",
         "i": ",".join(f"[css-font-style={style}]:not(i, em)"
                       for style in {"italic", "oblique"}),
-        "u": "[css-text-decoration^=underline]:not(u)"
+        "u": "[css-text-decoration^=underline]:not(u, a)"
     }
     for markup_tag_name, selection in CSS_MARKUP.items():
         for tag in soup.select(selection):
