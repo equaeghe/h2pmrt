@@ -23,5 +23,6 @@ def convert(html_string: str) -> str:
     html.remove_empty(soup)
     html.merge_markup(soup)
     html.direct_replacements(soup)
+    html.markup2text(soup)
     html.tags2text(soup)
     return str(soup.string)
