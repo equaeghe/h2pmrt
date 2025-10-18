@@ -158,20 +158,30 @@ def replace_brs(soup: bs4.BeautifulSoup):
             tag.replace_with("\n")
 
 
-def replace_imgs(soup: bs4.BeautifulSoup):
+def replace_imgs(soup: bs4.BeautifulSoup) -> str:
     """Replace img tags with approprate text representation"""
+    img_refs = {}
+    ref_counter = 0
     for img in soup("img"):
         assert isinstance(img, bs4.Tag)
-        img_src = str(img.get("src", ""))
-        alt_text = str(img.get("alt", ""))
-        img.replace_with("{" + alt_text + ": " + img_src + "}")
+        img_ref = str(img.get("src", ""))
+        if img_ref not in img_refs:
+            ref_counter += 1
+            img_refs[img_ref] = ref_counter
+        alt_text = img.get("alt")
+        if alt_text:
+            alt_text = str(alt_text)
+        else:
+            alt_text = up.unquote(op.basename(up.urlparse(img_ref).path))
+            alt_text = alt_text.split(".")[0].replace("_", " ")
+        img.replace_with("{" + alt_text + "}{" + str(img_refs[img_ref]) + "}")
+    return "\n".join("{" + str(i) + "}: " + ref for ref, i in img_refs.items())
 
 
 def direct_replacements(soup: bs4.BeautifulSoup):
     """Replace some classes of tags directly"""
     replace_hrs(soup)
     replace_brs(soup)
-    replace_imgs(soup)
 
 
 def markup2text(soup: bs4.BeautifulSoup):
