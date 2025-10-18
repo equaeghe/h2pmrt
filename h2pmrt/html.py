@@ -67,6 +67,8 @@ def linebreak_blocks(soup: bs4.BeautifulSoup):
     for tag in soup(BLOCKS):
         parents.add(tag.parent)
     for parent in parents:
+        for whitespace in parent(string=re.compile(" *"), recursive=False):
+            whitespace.decompose()
         siblings = list(parent.children)
         siblings.pop()
         for sibling in siblings:
