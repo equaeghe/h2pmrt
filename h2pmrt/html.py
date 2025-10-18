@@ -177,19 +177,19 @@ def direct_replacements(soup: bs4.BeautifulSoup):
 def markup2text(soup: bs4.BeautifulSoup):
     """Transform markup into text with delimiters"""
     MARKUP_MAP = {
-        ("b", "strong"): "*",
-        ("i", "em"): "/",
-        ("u"): "_",
-        ("s"): "~"
+        "b, strong": "*",
+        "i, em": "/",
+        "a > u, u:has(> a)": "",
+        "u": "_",
+        "s": "~"
     }
-    for tag_names, delimiter in MARKUP_MAP.items():
-        for tag_name in tag_names:
-            for tag in soup(tag_name):
-                assert isinstance(tag, bs4.Tag)
-                tag.insert(0, delimiter)
-                tag.append(delimiter)
-                tag.smooth()
-                tag.unwrap()
+    for selector, delimiter in MARKUP_MAP.items():
+        for tag in soup.select(selector):
+            assert isinstance(tag, bs4.Tag)
+            tag.insert(0, delimiter)
+            tag.append(delimiter)
+            tag.smooth()
+            tag.unwrap()
 
 
 def tags2text(soup: bs4.BeautifulSoup):
