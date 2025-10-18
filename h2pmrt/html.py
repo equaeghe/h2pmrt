@@ -1,6 +1,8 @@
 from typing_extensions import Dict
 import bs4
 import re
+import os.path as op
+import urllib.parse as up
 
 
 BLOCKS = {
