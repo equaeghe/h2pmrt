@@ -146,9 +146,9 @@ def merge_markup(soup: bs4.BeautifulSoup):
 
 
 def replace_hrs(soup: bs4.BeautifulSoup):
-    """Replace hr tags with 79 underscores"""
+    """Replace hr tags with 79 box-building lines"""
     for tag in soup("hr"):
-        tag.replace_with("_" * 79)
+        tag.replace_with("─" * 79)
 
 
 def replace_brs(soup: bs4.BeautifulSoup):
