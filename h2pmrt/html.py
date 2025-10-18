@@ -3,8 +3,6 @@ import bs4
 import re
 
 
-VOIDS = {"br", "hr", "img", "col"}
-SPAN_LIKE = {"span", "font"}
 BLOCKS = {
     "address", "article", "aside",
     "blockquote",
@@ -22,18 +20,11 @@ BLOCKS = {
     "ul",
     "video"
 }
-MERGEABLE = {"b", "strong", "i", "em"}
-SWEATABLE = {"a", "b", "strong", "i", "em", "u", "s"}
-MARKUP_MAP = {
-    ("b", "strong"): "*",
-    ("i", "em"): "/",
-    ("u"): "_",
-    ("s"): "~"
-}
 
 
 def sweat_whitespace(soup: bs4.BeautifulSoup):
     """Iteratively move trimmable whitespace outside of tags"""
+    SWEATABLE = {"a", "b", "strong", "i", "em", "u", "s"}
     sweating = True
     while sweating:
         sweating = False
@@ -78,6 +69,7 @@ def linebreak_blocks(soup: bs4.BeautifulSoup):
 
 def unwrap_spans(soup: bs4.BeautifulSoup):
     """Unwrap all span-like tags"""
+    SPAN_LIKE = {"span", "font"}
     for tag in soup(SPAN_LIKE):
         assert isinstance(tag, bs4.Tag)
         tag.unwrap()
@@ -98,6 +90,7 @@ def direct_unwraps(soup: bs4.BeautifulSoup):
 
 def remove_empty(soup: bs4.BeautifulSoup):
     """Iteratively remove empty tags"""
+    VOIDS = {"br", "hr", "img", "col"}
     maybe_some_empty_still = True
     while maybe_some_empty_still:
         maybe_some_empty_still = False
@@ -111,6 +104,7 @@ def remove_empty(soup: bs4.BeautifulSoup):
 
 def merge_markup(soup: bs4.BeautifulSoup):
     """Merge adjacent markup tags"""
+    MERGEABLE = {"b", "strong", "i", "em"}
     soup.smooth()  # make sure there are no adjacent NavigableStrings
     for tag_name in MERGEABLE:
         # Group by parent
@@ -182,6 +176,12 @@ def direct_replacements(soup: bs4.BeautifulSoup):
 
 def markup2text(soup: bs4.BeautifulSoup):
     """Transform markup into text with delimiters"""
+    MARKUP_MAP = {
+        ("b", "strong"): "*",
+        ("i", "em"): "/",
+        ("u"): "_",
+        ("s"): "~"
+    }
     for tag_names, delimiter in MARKUP_MAP.items():
         for tag_name in tag_names:
             for tag in soup(tag_name):
