@@ -60,13 +60,19 @@ def linebreak_blocks(soup: bs4.BeautifulSoup):
     for tag in soup(BLOCKS):
         parents.add(tag.parent)
     for parent in parents:
-        for whitespace in parent(string=re.compile(" *"), recursive=False):
+        for whitespace in parent(string=re.compile("^ *$"), recursive=False):
             whitespace.decompose()
-        siblings = list(parent.children)
-        siblings.pop()
-        for sibling in siblings:
-            linebreak = bs4.NavigableString("\n")
-            sibling.insert_after(linebreak)
+        for block_sibling in parent(BLOCKS, recursive=False):
+            previous = block_sibling.previous_sibling
+            next = block_sibling.next_sibling
+            if previous:
+                print("insert before")
+                linebreak = bs4.NavigableString("\n")
+                block_sibling.insert_before(linebreak)
+            if next and next.name not in BLOCKS:
+                print("insert after")
+                linebreak = bs4.NavigableString("\n")
+                block_sibling.insert_after(linebreak)
 
 
 def unwrap_spans(soup: bs4.BeautifulSoup):
