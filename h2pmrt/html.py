@@ -178,6 +178,18 @@ def direct_replacements(soup: bs4.BeautifulSoup):
     replace_imgs(soup)
 
 
+def markup2text(soup: bs4.BeautifulSoup):
+    """Transform markup into text with delimiters"""
+    for tag_names, delimiter in MARKUP_MAP.items():
+        for tag_name in tag_names:
+            for tag in soup(tag_name):
+                assert isinstance(tag, bs4.Tag)
+                tag.insert(0, delimiter)
+                tag.append(delimiter)
+                tag.smooth()
+                tag.unwrap()
+
+
 def tags2text(soup: bs4.BeautifulSoup):
     """Replace tags by poor man's rich text"""
     link_counter : int = 1
@@ -208,12 +220,6 @@ def tags2text(soup: bs4.BeautifulSoup):
             pass
             # print(f"+{tag.name}", end="")
         # It is a bug if tag does not have a (single) string at this point
-        assert tag.string is not None
-        # Markup
-        for tags, delimiter in MARKUP_MAP.items():
-            if tag.name in tags:
-                tag.replace_with(delimiter + tag.string + delimiter)
-                return
         # Vertical placement
         if tag.name == "sup":
             tag.replace_with("^" + tag.string)
