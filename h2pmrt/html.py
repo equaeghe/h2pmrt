@@ -150,15 +150,15 @@ def merge_markup(soup: bs4.BeautifulSoup):
 
 
 def replace_hrs(soup: bs4.BeautifulSoup):
-    """Replace hr tags with 79 box-building lines"""
+    """Replace hr tags with box-building lines"""
     for hr in soup("hr"):
         assert isinstance(hr, bs4.Tag)
         if hr.get("css-border-before"):
-            hr.replace_with("┌" + "─" * 77 + "┐")
+            hr.replace_with("▄" * 40)
         elif hr.get("css-border-after"):
-            hr.replace_with("└" + "─" * 77 + "┘")
+            hr.replace_with("▀" * 40)
         else:
-            hr.replace_with("─" * 79)
+            hr.replace_with("─" * 40)
 
 
 def replace_brs(soup: bs4.BeautifulSoup):
