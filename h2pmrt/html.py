@@ -32,9 +32,8 @@ def sanitize_tree(soup: bs4.BeautifulSoup):
 
 def unwrap_spans(soup: bs4.BeautifulSoup):
     """Unwrap all span-like tags"""
-    SPAN_LIKE = {"span", "font", "center"}
-    for tag in soup(SPAN_LIKE):
-        assert isinstance(tag, bs4.Tag)
+    SPAN_LIKE = "span, font, center"
+    for tag in soup.select(SPAN_LIKE):
         tag.unwrap()
 
 
@@ -157,8 +156,7 @@ def merge_markup(soup: bs4.BeautifulSoup):
 
 def replace_hrs(soup: bs4.BeautifulSoup):
     """Replace hr tags with box-building lines"""
-    for hr in soup("hr"):
-        assert isinstance(hr, bs4.Tag)
+    for hr in soup.select("hr"):
         if hr.get("css-border-before"):
             hr.replace_with("▄" * 40)
         elif hr.get("css-border-after"):
@@ -186,8 +184,7 @@ def replace_imgs(soup: bs4.BeautifulSoup) -> str:
     """Replace img tags with approprate text representation"""
     img_refs = {}
     ref_counter = 0
-    for img in soup("img"):
-        assert isinstance(img, bs4.Tag)
+    for img in soup.select("img"):
         img_ref = str(img.get("src", ""))
         if img_ref not in img_refs:
             ref_counter += 1
@@ -220,9 +217,8 @@ def ul_compilation(soup: bs4.BeautifulSoup):
         "circle": "◦",
         "square": "▪"
     }
-    for ul in soup("ul"):
+    for ul in soup.select("ul"):
         symbol_string = "disc"
-        assert isinstance(ul, bs4.Tag)
         if ul.get("type"):
             symbol_string = str(ul["type"])
         if ul.get("css-list-style-type"):
@@ -242,8 +238,7 @@ def ul_compilation(soup: bs4.BeautifulSoup):
 
 def ol_compilation(soup: bs4.BeautifulSoup):
     """Compile ol to div"""
-    for ol in soup("ol"):
-        assert isinstance(ol, bs4.Tag)
+    for ol in soup.select("ol"):
         for li in ol("li", recursive=False):
             assert isinstance(li, bs4.Tag)
             lst = str(li.get("css-list-style-type"))
@@ -264,7 +259,6 @@ def markup2text(soup: bs4.BeautifulSoup):
     }
     for selector, delimiter in MARKUP_MAP.items():
         for tag in soup.select(selector):
-            assert isinstance(tag, bs4.Tag)
             tag.insert(0, delimiter)
             tag.append(delimiter)
             tag.smooth()
