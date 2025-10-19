@@ -1,0 +1,25 @@
+[project]
+name = "h2pmrt"
+description = "Python HTML to poor man's rich text converter"
+keywords = ["html", "text", "email", "rich text"]
+readme = "README.md"
+authors = [{ name = "Erik Quaeghebeur" }]
+license = "GPL-3.0-or-later"
+license-files = ["LICENSE"]
+requires-python = ">=3.13"
+classifiers = [
+    "Development Status :: 3 - Alpha",
+    "Intended Audience :: Developers",
+    "Programming Language :: Python :: 3",
+    "Operating System :: OS Independent",
+]
+dependencies = [
+    "minify_html >= 0.16.0",
+    "beautifulsoup4 >= 4.13.0",
+    "tinycss2 >= 1.4.0"
+]
+dynamic = ["version"]
+
+[project.urls]
+Homepage = "https://github.com/equaeghe/h2pmrt"
+Issues = "https://github.com/equaeghe/h2pmrt/issues"
