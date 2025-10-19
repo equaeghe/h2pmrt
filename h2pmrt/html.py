@@ -167,7 +167,11 @@ def replace_brs(soup: bs4.BeautifulSoup):
             # deal with implicit linebreak
             tag.decompose()
         else:
+            next = tag.next
             tag.replace_with("\n")
+            if next and isinstance(next, bs4.NavigableString):
+                next.replace_with(next.lstrip())
+    soup.smooth()
 
 
 def replace_imgs(soup: bs4.BeautifulSoup) -> str:
