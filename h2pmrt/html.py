@@ -43,6 +43,7 @@ def direct_unwraps(soup: bs4.BeautifulSoup):
     """Unwrap some classes of tags directly"""
     unwrap_spans(soup)
     unwrap_msoffice_tags(soup)
+    soup.smooth()
 
 
 def sweat_whitespace(soup: bs4.BeautifulSoup):
@@ -73,6 +74,7 @@ def sweat_whitespace(soup: bs4.BeautifulSoup):
                     sweating = True
                 # Add properly stripped back
                 string.replace_with(strippable)
+    soup.smooth()
 
 
 def linebreak_blocks(soup: bs4.BeautifulSoup):
@@ -105,6 +107,7 @@ def remove_empty(soup: bs4.BeautifulSoup):
             if list(tag.children) in ([], [""]):
                 tag.decompose()
                 maybe_some_empty_still = True # decompose may create empty tags
+    soup.smooth()
 
 
 def merge_markup(soup: bs4.BeautifulSoup):
