@@ -18,7 +18,6 @@ def convert(html_string: str) -> str:
     undo.link_rewriting(soup)
     html.direct_unwraps(soup)
     html.sweat_whitespace(soup)
-    soup = bs4.BeautifulSoup(text.cleanup(str(soup)), "html5lib")
     html.linebreak_blocks(soup)
     html.remove_empty(soup)
     html.merge_markup(soup)
