@@ -9,11 +9,12 @@ import h2pmrt.html as html
 def convert(html_string: str) -> str:
     """Convert html to poor man's rich text"""
     soup = bs4.BeautifulSoup(text.cleanup(html_string), "html5lib")
+    if isinstance(soup.contents[0], bs4.Doctype):
+        soup.contents[0].decompose()
     css.cssprops2htmlattrs(soup)
     css.css2html_markup(soup)
     css.cssborder2hr(soup)
-    if soup.body:
-        soup = soup.body
+    soup.head.decompose()
     undo.ms_sender_identification(soup)
     undo.link_rewriting(soup)
     html.direct_unwraps(soup)
