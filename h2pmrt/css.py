@@ -23,10 +23,10 @@ def cssprops2htmlattrs(soup: bs4.BeautifulSoup):
         for decl in declarations:
             if (decl.type == "declaration" and
                 decl.name in PROPERTIES_OF_INTEREST):
-                tag["css-" + decl.name] = str([
-                    value.value for value in decl.value
+                tag["css-" + decl.name] = " ".join(
+                    str(value.value) for value in decl.value
                     if not isinstance(value, tuple(UNINTERESTING_TOKENS))
-                    ][-1])
+                )
         del tag["style"]
 
 
@@ -50,14 +50,16 @@ def cssborder2hr(soup: bs4.BeautifulSoup):
     """Convert CSS border properties to styled hr tags"""
     STYLES = {"dotted",	"dashed", "solid", "double",
               "groove", "ridge", "inset", "outset"}
-    CSS_BORDERS = {property: ",".join(f"[css-{property}={style}]:not(hr)"
+    CSS_BORDERS = {property: ",".join(f"[css-{property}*={style}]:not(hr)"
                                       for style in STYLES)
                    for property in {"border", "border-top", "border-bottom"}}
     for property, selection in CSS_BORDERS.items():
         for tag in soup.select(selection):
-            hr = soup.new_tag("hr")
-            hr[f"css-{property}"] = tag[f"css-{property}"]
             if property in {"border", "border-top"}:
+                hr = soup.new_tag("hr")
+                hr[f"css-{property}"] = tag[f"css-{property}"]
                 tag.insert_before(hr)
             if property in {"border", "bordor-bottom"}:
+                hr = soup.new_tag("hr")
+                hr[f"css-{property}"] = tag[f"css-{property}"]
                 tag.insert_after(hr)
