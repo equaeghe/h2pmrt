@@ -26,7 +26,7 @@ BLOCKS = {
 
 def unwrap_spans(soup: bs4.BeautifulSoup):
     """Unwrap all span-like tags"""
-    SPAN_LIKE = {"span", "font"}
+    SPAN_LIKE = {"span", "font", "center"}
     for tag in soup(SPAN_LIKE):
         assert isinstance(tag, bs4.Tag)
         tag.unwrap()
