@@ -100,10 +100,10 @@ def remove_empty(soup: bs4.BeautifulSoup):
     maybe_some_empty_still = True
     while maybe_some_empty_still:
         maybe_some_empty_still = False
-        for tag in soup.find_all(lambda tag: tag.name not in VOIDS,
-                                 string=None):
+        for tag in soup(lambda tag: tag.name not in VOIDS, string=None):
             assert isinstance(tag, bs4.Tag)
-            if list(tag.children) == []:
+            if tag.name == "i": print(tag.name, tag, list(tag.children))
+            if list(tag.children) in ([], [""]):
                 tag.decompose()
                 maybe_some_empty_still = True # decompose may create empty tags
 
