@@ -12,3 +12,4 @@ def link_rewriting(soup: bs4.BeautifulSoup):
     for a in soup("a", originalsrc=True):
         assert isinstance(a, bs4.Tag)
         a["href"] = a["originalsrc"]
+        del a["originalsrc"]
