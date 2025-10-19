@@ -193,7 +193,12 @@ def replace_imgs(soup: bs4.BeautifulSoup) -> str:
             alt_text = up.unquote(op.basename(up.urlparse(img_ref).path))
             alt_text = alt_text.split(".")[0].replace("_", " ")
         img.replace_with("{" + alt_text + "}{" + str(img_refs[img_ref]) + "}")
-    return "\n".join("{" + str(i) + "}: " + ref for ref, i in img_refs.items())
+    img_refs_text = (
+        "\n" + "═" * 40 + "\n" +
+        "\n".join("{" + str(i) + "}: " + ref for ref, i in img_refs.items()) +
+        "\n" + "═" * 40
+    ) if img_refs else ""
+    return img_refs_text
 
 
 def direct_replacements(soup: bs4.BeautifulSoup):
