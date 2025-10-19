@@ -117,12 +117,20 @@ def remove_empty(soup: bs4.BeautifulSoup):
 
 def merge_markup(soup: bs4.BeautifulSoup):
     """Merge adjacent markup tags"""
-    MERGEABLE = {"b", "strong", "i", "em"}
+    EQUIVALENT = {"strong": "b", "em": "i"}
+    MERGEABLE = {"b", "i"}
     soup.smooth()  # make sure there are no adjacent NavigableStrings
+    # Eliminate use of equivalent tag names for markup
+    for tag_name, equivalent_tag_name in EQUIVALENT.items():
+        for tag in soup.select(tag_name):
+            tag.name = equivalent_tag_name
     for tag_name in MERGEABLE:
+        # Unwrap markup that is implied by ancestor markup
+        for tag in soup.select(tag_name + " " + tag_name):
+            tag.unwrap()
         # Group by parent
         sibling_map = dict()
-        for tag in soup(tag_name):
+        for tag in soup.select(tag_name):
             parent = tag.parent
             if parent not in sibling_map:
                 sibling_map[parent] = [tag]
