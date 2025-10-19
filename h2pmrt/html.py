@@ -24,6 +24,12 @@ BLOCKS = {
 }
 
 
+def sanitize_tree(soup: bs4.BeautifulSoup):
+    """Remove tags that can only get in the way"""
+    for tag in soup.select("head, style"):
+        tag.decompose()
+
+
 def unwrap_spans(soup: bs4.BeautifulSoup):
     """Unwrap all span-like tags"""
     SPAN_LIKE = {"span", "font", "center"}
