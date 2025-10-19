@@ -207,6 +207,46 @@ def direct_replacements(soup: bs4.BeautifulSoup):
     replace_brs(soup)
 
 
+def ul_compilation(soup: bs4.BeautifulSoup):
+    """Compile ul to div"""
+    UL_SYMBOLS = {
+        "disc": "•",
+        "circle": "◦",
+        "square": "▪"
+    }
+    for ul in soup("ul"):
+        symbol_string = "disc"
+        assert isinstance(ul, bs4.Tag)
+        if ul.get("type"):
+            symbol_string = ul["type"]
+        if ul.get("css-list-style-type"):
+            symbol_string = ul["css-list-style-type"]
+        for li in ul("li", recursive=False):
+            assert isinstance(li, bs4.Tag)
+            if li.get("css-list-style-type"):
+                symbol_string = li["css-list-style-type"]
+            if symbol_string in UL_SYMBOLS:
+                symbol = UL_SYMBOLS[symbol_string]
+            else:
+                symbol = symbol_string
+            li.insert(0, "\t" + symbol + " ")
+            li.name = "div"
+        ul.name = "div"
+
+
+def ol_compilation(soup: bs4.BeautifulSoup):
+    """Compile ol to div"""
+    for ol in soup("ol"):
+        assert isinstance(ol, bs4.Tag)
+        for li in ol("li", recursive=False):
+            assert isinstance(li, bs4.Tag)
+            lst = str(li.get("css-list-style-type"))
+            if lst:
+                li.insert(0, "\t" + lst)
+            li.name = "div"
+        ol.name = "div"
+
+
 def markup2text(soup: bs4.BeautifulSoup):
     """Transform markup into text with delimiters"""
     MARKUP_MAP = {

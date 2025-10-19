@@ -24,6 +24,8 @@ def convert(html_string: str) -> str:
     html.merge_markup(soup)
     html.direct_replacements(soup)
     img_refs = html.replace_imgs(soup)
+    html.ul_compilation(soup)
+    html.ol_compilation(soup)
     html.markup2text(soup)
     html.tags2text(soup)
     output = str(soup.string)
