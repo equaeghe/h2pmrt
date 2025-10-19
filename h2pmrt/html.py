@@ -218,13 +218,13 @@ def ul_compilation(soup: bs4.BeautifulSoup):
         symbol_string = "disc"
         assert isinstance(ul, bs4.Tag)
         if ul.get("type"):
-            symbol_string = ul["type"]
+            symbol_string = str(ul["type"])
         if ul.get("css-list-style-type"):
-            symbol_string = ul["css-list-style-type"]
+            symbol_string = str(ul["css-list-style-type"])
         for li in ul("li", recursive=False):
             assert isinstance(li, bs4.Tag)
             if li.get("css-list-style-type"):
-                symbol_string = li["css-list-style-type"]
+                symbol_string = str(li["css-list-style-type"])
             if symbol_string in UL_SYMBOLS:
                 symbol = UL_SYMBOLS[symbol_string]
             else:

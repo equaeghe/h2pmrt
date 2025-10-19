@@ -14,7 +14,8 @@ def convert(html_string: str) -> str:
     css.cssprops2htmlattrs(soup)
     css.css2html_markup(soup)
     css.cssborder2hr(soup)
-    soup.head.decompose()
+    if soup.head:
+        soup.head.decompose()
     undo.ms_sender_identification(soup)
     undo.link_rewriting(soup)
     html.direct_unwraps(soup)
