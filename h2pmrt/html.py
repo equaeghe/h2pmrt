@@ -188,6 +188,24 @@ def replace_brs(soup: bs4.BeautifulSoup):
     soup.smooth()
 
 
+def replace_headings(soup: bs4.BeautifulSoup):
+    """Replace headings with simpler markup"""
+    HEADINGS = "h1, h2, h3, h4, h5, h6"
+    for h in soup.select(HEADINGS):
+        level = int(h.name[1:])
+        b = h.wrap(soup.new_tag("b"))
+        h.unwrap()
+        signpost = bs4.NavigableString("#" * level + " ")
+        b.insert_before(signpost)
+
+
+def direct_replacements(soup: bs4.BeautifulSoup):
+    """Replace some classes of tags directly"""
+    replace_hrs(soup)
+    replace_brs(soup)
+    replace_headings(soup)
+
+
 def replace_imgs(soup: bs4.BeautifulSoup) -> str:
     """Replace img tags with approprate text representation"""
     img_refs = {}
@@ -210,12 +228,6 @@ def replace_imgs(soup: bs4.BeautifulSoup) -> str:
         "\n" + "═" * 40
     ) if img_refs else ""
     return img_refs_text
-
-
-def direct_replacements(soup: bs4.BeautifulSoup):
-    """Replace some classes of tags directly"""
-    replace_hrs(soup)
-    replace_brs(soup)
 
 
 def ul_compilation(soup: bs4.BeautifulSoup):
@@ -308,11 +320,6 @@ def tags2text(soup: bs4.BeautifulSoup):
             tag.replace_with("^" + tag.string)
         if tag.name == "sub":
             tag.replace_with("_" + tag.string)
-        # Headings
-        if tag.name.startswith('h') and tag.name[1:].isdigit():
-            level = int(tag.name[1:])
-            tag.replace_with(f"{'#' * level} *{tag.string}*")
-            return
         # Quotes
         if tag.name == "blockquote":
             quoted_lines = tag.string.splitlines()
