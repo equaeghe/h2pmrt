@@ -57,9 +57,13 @@ def cssborder2hr(soup: bs4.BeautifulSoup):
         for tag in soup.select(selection):
             if property in {"border", "border-top"}:
                 hr = soup.new_tag("hr")
-                hr[f"css-{property}"] = tag[f"css-{property}"]
+                attr_name = ("css-" + property
+                             + "-before" if property == "border" else "")
+                hr[attr_name] = tag[f"css-{property}"]
                 tag.insert_before(hr)
             if property in {"border", "bordor-bottom"}:
                 hr = soup.new_tag("hr")
-                hr[f"css-{property}"] = tag[f"css-{property}"]
+                attr_name = ("css-" + property
+                             + "-after" if property == "border" else "")
+                hr[attr_name] = tag[f"css-{property}"]
                 tag.insert_after(hr)
