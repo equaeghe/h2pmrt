@@ -5,7 +5,7 @@ import tinycss2 as tc2
 def cssprops2htmlattrs(soup: bs4.BeautifulSoup):
     """Convert CSS properties to HTML attributes"""
     PROPERTIES_OF_INTEREST = {
-        "border", "border-top", "border-bottom",
+        "border", "border-top", "border-bottom", "border-style",
         "font-weight", "font-style", "text-decoration",
         "list-style-type"
     }
@@ -53,6 +53,20 @@ def cssborder2hr(soup: bs4.BeautifulSoup):
     CSS_BORDERS = {property: ",".join(f"[css-{property}*={style}]:not(hr)"
                                       for style in STYLES)
                    for property in {"border", "border-top", "border-bottom"}}
+    # Transform border-style to border/border-top/border-bottom
+    for tag in soup.select("[css-border-style]"):
+        styles = str(tag["css-border-style"]).split()
+        if len(styles) <= 2:
+            tag["css-border"] = styles[0]
+        else:
+            top = styles[0]
+            bottom = styles[2]
+            if top == bottom:
+                tag["css-border"] = styles[0]
+            else:
+                tag["css-border-top"] = top
+                tag["css-border-bottom"] = bottom
+    # Deal with border, border-top, and border-bottom
     for property, selection in CSS_BORDERS.items():
         for tag in soup.select(selection):
             if property in {"border", "border-top"}:
