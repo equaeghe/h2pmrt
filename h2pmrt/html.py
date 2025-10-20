@@ -237,6 +237,8 @@ def ul_compilation(soup: bs4.BeautifulSoup):
         "circle": "◦",
         "square": "▪"
     }
+    for menu in soup.select("menu"):
+        menu.name = "ul"
     for ul in soup.select("ul"):
         symbol_string = "disc"
         if ul.get("type"):
