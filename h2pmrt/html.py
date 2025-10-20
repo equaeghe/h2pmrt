@@ -166,9 +166,9 @@ def replace_hrs(soup: bs4.BeautifulSoup):
     """Replace hr tags with box-building lines"""
     for hr in soup.select("hr"):
         if hr.get("css-border-before"):
-            hr.replace_with("▄" * 40)
+            hr.replace_with("┌" + "─" * 39)
         elif hr.get("css-border-after"):
-            hr.replace_with("▀" * 40)
+            hr.replace_with("─" * 39 + "┘")
         else:
             hr.replace_with("─" * 40)
 
