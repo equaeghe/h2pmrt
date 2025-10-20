@@ -260,12 +260,46 @@ def ul_compilation(soup: bs4.BeautifulSoup):
 
 def ol_compilation(soup: bs4.BeautifulSoup):
     """Compile ol to div"""
+    TYPEATTR2LST = {
+        "1": "decimal",
+        "a": "lower-latin",
+        "A": "upper-latin",
+        "i": "lower-roman",
+        "I": "upper-roman"
+    }
+    LST2INSDICES = {
+        "decimal": [str(k) for k in range(1,27)],
+        "lower-latin": "abcdefghijklmnopqrstuvw",
+        "upper-latin": "ABCDEFGHIJKLMNOPQRSTUVW",
+        "lower-roman": [
+            "i", "ii", "iii", "iv", "v",
+            "vi", "vii", "viii", "ix", "x",
+            "xi", "xii", "xiii", "xiv", "xv",
+            "xvi", "xvii", "xviii", "xix", "xx"
+        ],
+        "upper-roman": [
+            "i", "ii", "iii", "iv", "v",
+            "vi", "vii", "viii", "ix", "x",
+            "xi", "xii", "xiii", "xiv", "xv",
+            "xvi", "xvii", "xviii", "xix", "xx"
+        ],
+        "upper-roman": [
+            "I", "II", "III", "IV", "V",
+            "VI", "VII", "VIII", "IX", "X",
+            "XI", "XII", "XIII", "XIV", "XV",
+            "XVI", "XVII", "XVIII", "XIX", "XX"
+        ],
+    }
     for ol in soup.select("ol"):
+        lst = TYPEATTR2LST[str(ol["type"])] if ol.get("type") else "decimal"
+        counter = (int(str(ol["start"])) if ol.get("start") else 1) - 1
         for li in ol("li", recursive=False):
             assert isinstance(li, bs4.Tag)
-            lst = str(li.get("css-list-style-type"))
-            if lst:
-                li.insert(0, "\t" + lst)
+            li_lst = LST2INSDICES[lst][counter] + ". "
+            if li.get("css-list-style-type"):
+                li_lst = str(li["css-list-style-type"])
+            li.insert(0, "\t" + li_lst)
+            counter += 1
             li.name = "div"
         ol.name = "div"
 
