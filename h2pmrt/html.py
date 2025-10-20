@@ -26,7 +26,7 @@ BLOCKS = {
 
 def sanitize_tree(soup: bs4.BeautifulSoup):
     """Remove tags that can only get in the way"""
-    for tag in soup.select("head, style"):
+    for tag in soup.select("head, style, meta"):
         tag.decompose()
 
 
