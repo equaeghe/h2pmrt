@@ -112,7 +112,7 @@ def remove_empty(soup: bs4.BeautifulSoup):
             if list(tag.children) in ([], [""]):
                 tag.decompose()
                 maybe_some_empty_still = True # decompose may create empty tags
-    soup.smooth()
+        soup.smooth()
 
 
 def merge_markup(soup: bs4.BeautifulSoup):
