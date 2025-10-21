@@ -253,9 +253,7 @@ def ul_compilation(soup: bs4.BeautifulSoup):
                 symbol = UL_SYMBOLS[symbol_string]
             else:
                 symbol = symbol_string
-            li.insert(0, "\t" + symbol + " ")
-            li.name = "div"
-        ul.name = "div"
+            li.insert(0, symbol + " ")
 
 
 def ol_compilation(soup: bs4.BeautifulSoup):
@@ -298,10 +296,8 @@ def ol_compilation(soup: bs4.BeautifulSoup):
             li_lst = LST2INSDICES[lst][counter] + ". "
             if li.get("css-list-style-type"):
                 li_lst = str(li["css-list-style-type"])
-            li.insert(0, "\t" + li_lst)
+            li.insert(0, li_lst)
             counter += 1
-            li.name = "div"
-        ol.name = "div"
 
 
 def markup2text(soup: bs4.BeautifulSoup):
@@ -408,6 +404,9 @@ def tags2text(soup: bs4.BeautifulSoup):
         if tag.name == "li":
             tag.unwrap()
             return
+        if tag.name in {"ul", "ol", "dl"}:
+            list_lines = tag.string.splitlines()
+            tag.string = "\t" + "\n\t".join(list_lines)
         # TBD with link blocks
         if tag.name in {"body", "section", "div", "p", "ol", "ul"}:
             text = str(tag.string)
