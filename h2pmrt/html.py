@@ -361,13 +361,16 @@ def tags2text(soup: bs4.BeautifulSoup):
         if tag.name == "a":
             href = str(tag.get("href", ""))
             text = str(tag.string)
-            if href.startswith("mailto:") or href.startswith("phone:"):
-                if href.endswith(":" + text):
+            href_parts = href.split(text)
+            if len(href_parts) == 2:
+                head = href_parts[0]
+                tail = href_parts[-1]
+                if head in {"mailto:", "phone:"} and tail == "":
                     tag.replace_with(text)
                     return
-            elif href == text or href.endswith("://" + text):
-                tag.replace_with(href)
-                return
+                elif (head == "" or head.endswith("://")) and tail in {"", "/"}:
+                    tag.replace_with(href)
+                    return
             title = tag.get("title")
             if not title or title == href:
                 ref = href
