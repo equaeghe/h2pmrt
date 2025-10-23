@@ -28,6 +28,8 @@ def sanitize_tree(soup: bs4.BeautifulSoup):
     """Remove tags that can only get in the way"""
     for tag in soup.select("head, style, meta"):
         tag.decompose()
+    for comment in soup(string=lambda elem: isinstance(elem, bs4.Comment)):
+        comment.decompose()
 
 
 def unwrap_spans(soup: bs4.BeautifulSoup):
