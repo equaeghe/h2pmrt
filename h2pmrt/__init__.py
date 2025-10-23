@@ -18,7 +18,7 @@ def convert(html_string: str) -> str:
     undo.ms_sender_identification(soup)
     undo.link_rewriting(soup)
     html.direct_unwraps(soup)
-    html.sweat_whitespace(soup)
+    html.sweat(soup)
     html.linebreak_blocks(soup)
     html.remove_empty(soup)
     html.direct_replacements(soup)

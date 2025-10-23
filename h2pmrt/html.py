@@ -84,6 +84,27 @@ def sweat_whitespace(soup: bs4.BeautifulSoup):
     soup.smooth()
 
 
+def sweat_markup(soup: bs4.BeautifulSoup):
+    """Move single child markup outside of anchor tags"""
+    MARKUP = {"b", "strong", "i", "em", "u", "s"}
+    for a in soup.select("a"):
+        if not a.children:
+            return
+        children = list(a.children)
+        if len(children) == 1:
+            child = children[0]
+            if child.name in MARKUP:
+                markup = soup.new_tag(child.name)
+                a.wrap(markup)
+                child.unwrap()
+
+
+def sweat(soup: bs4.BeautifulSoup):
+    """Move all kinds of material outwards"""
+    sweat_whitespace(soup)
+    sweat_markup(soup)
+
+
 def linebreak_blocks(soup: bs4.BeautifulSoup):
     """Add a linebreak between sibling block-like elements"""
     parents = set()
@@ -158,7 +179,7 @@ def merge_markup(soup: bs4.BeautifulSoup):
                     # we can merge something
                     mergeable_tags.extend(next_tag.contents)
                     siblings.pop()
-                    next_tag.decompose()
+                    next_tag.extract()
                     tag.extend(mergeable_tags)
                     siblings.append(tag)  # may be more to merge in later
             parent.smooth()
