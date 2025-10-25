@@ -46,10 +46,33 @@ def unwrap_msoffice_tags(soup: bs4.BeautifulSoup):
         tag.unwrap()
 
 
+def unwrap_vertical_placement(soup: bs4.BeautifulSoup):
+    """Unwrap all sub and sup tags"""
+    REPLACEABLE = "0123456789+-n"
+    SUB_REPLACEMENTS = "₀₁₂₃₄₅₆₇₈₉₊₋ₙ"
+    SUP_REPLACEMENTS = "⁰¹²³⁴⁵⁶⁷⁸⁹⁺⁻ⁿ"
+    SUP_NO_CARET = {"st", "nd", "rd", "ste", "de"}
+    for sub in soup.select("sub"):
+        if sub.string and len(sub.string) == 1 and sub.string in REPLACEABLE:
+            sub.replace_with(SUB_REPLACEMENTS[REPLACEABLE.find(sub.string)])
+        else:
+            sub.insert(0, "_")
+            sub.unwrap()
+    for sup in soup.select("sup"):
+        if sup.string and len(sup.string) == 1 and sup.string in REPLACEABLE:
+            sup.replace_with(SUP_REPLACEMENTS[REPLACEABLE.find(sup.string)])
+        elif sup.string in SUP_NO_CARET:
+            sup.replace_with(sup.string)
+        else:
+            sup.insert(0, "^")
+            sup.unwrap()
+
+
 def direct_unwraps(soup: bs4.BeautifulSoup):
     """Unwrap some classes of tags directly"""
     unwrap_spans(soup)
     unwrap_msoffice_tags(soup)
+    unwrap_vertical_placement(soup)
     soup.smooth()
 
 
@@ -372,11 +395,6 @@ def tags2text(soup: bs4.BeautifulSoup):
             pass
             # print(f"+{tag.name}", end="")
         # It is a bug if tag does not have a (single) string at this point
-        # Vertical placement
-        if tag.name == "sup":
-            tag.replace_with("^" + tag.string)
-        if tag.name == "sub":
-            tag.replace_with("_" + tag.string)
         # Quotes
         if tag.name == "blockquote":
             quoted_lines = tag.string.splitlines()
