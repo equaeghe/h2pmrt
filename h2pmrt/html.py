@@ -342,7 +342,9 @@ def markup2text(soup: bs4.BeautifulSoup):
 
 def tags2text(soup: bs4.BeautifulSoup):
     """Replace tags by poor man's rich text"""
+    LINKBLOCKABLE = {"body", "section", "div", "p", "ol", "ul"}
     link_counter : int = 1
+    link_block_tag = None
     link_map : Dict[str, int] = dict()
 
     def process_tag(tag: bs4.Tag):
@@ -401,6 +403,18 @@ def tags2text(soup: bs4.BeautifulSoup):
                 ref = href + f" ({title})"
             if ref not in link_map:
                 nonlocal link_counter
+                nonlocal link_block_tag
+                candidate = tag
+                if not link_block_tag:
+                    linkblockable_found = False
+                    while not linkblockable_found:
+                        if (candidate.name == "body" or
+                            (candidate.name in LINKBLOCKABLE and
+                             candidate.parent.name in LINKBLOCKABLE)):
+                            link_block_tag = candidate
+                            linkblockable_found = True
+                        else:
+                            candidate = candidate.parent
                 link_map[ref] = link_counter
                 link_counter += 1
             tag.replace_with(f"[{text}][{link_map[ref]}]")
@@ -434,10 +448,9 @@ def tags2text(soup: bs4.BeautifulSoup):
             list_lines = tag.string.splitlines()
             tag.string = "\t" + "\n\t".join(list_lines)
         # TBD with link blocks
-        if tag.name in {"body", "section", "div", "p", "ol", "ul"}:
+        if tag.name in LINKBLOCKABLE:
             text = str(tag.string)
-            if (link_map and (tag.name == "body" or
-                tag.parent.name in {"body", "section", "div", "p", "ol", "ul"})):
+            if tag is link_block_tag:
                 # Add list of tags after large enough bodies of text
                 link_list = [f"\t[{index}]: {ref}"
                     for ref, index in sorted(link_map.items(),
@@ -445,6 +458,7 @@ def tags2text(soup: bs4.BeautifulSoup):
                 link_block = "\n".join(link_list)
                 text += "\n\n" + link_block + "\n"
                 link_map.clear()
+                link_block_tag = None
             tag.replace_with(text)
             return
 
