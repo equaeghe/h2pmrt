@@ -246,21 +246,6 @@ def replace_hrs(soup: bs4.BeautifulSoup):
             hr.replace_with("─" * 40)
 
 
-def replace_brs(soup: bs4.BeautifulSoup):
-    """Replace br tags with a linebreak"""
-    for tag in soup("br"):
-        if (tag.parent and tag.parent.name in BLOCKS
-            and len(list(tag.parent.children)) == 1):
-            # deal with implicit linebreak
-            tag.decompose()
-        else:
-            next = tag.next
-            tag.replace_with("\n")
-            if next and isinstance(next, bs4.NavigableString):
-                next.replace_with(next.lstrip())
-    soup.smooth()
-
-
 def replace_headings(soup: bs4.BeautifulSoup):
     """Replace headings with simpler markup"""
     HEADINGS = "h1, h2, h3, h4, h5, h6"
@@ -302,7 +287,6 @@ def replace_blockquotes(soup: bs4.BeautifulSoup):
 def direct_replacements(soup: bs4.BeautifulSoup):
     """Replace some classes of tags directly"""
     replace_hrs(soup)
-    replace_brs(soup)
     replace_headings(soup)
     replace_anchors(soup)
     replace_blockquotes(soup)
@@ -455,16 +439,6 @@ def tags2text(soup: bs4.BeautifulSoup):
                     # print("_", end="")
             # Merge strings
             tag.smooth()
-        # Before continuing make really sure tags have a single string
-        # Remove empty tags
-        if list(tag.children) == []:
-            # print(f"/{tag.name}", end="")
-            tag.decompose()
-            return
-        else:
-            pass
-            # print(f"+{tag.name}", end="")
-        # It is a bug if tag does not have a (single) string at this point
         # Anchors
         if tag.name == "a":
             href = str(tag.get("href", ""))
@@ -489,30 +463,70 @@ def tags2text(soup: bs4.BeautifulSoup):
                             candidate = candidate.parent
                 link_map[ref] = link_counter
                 link_counter += 1
-            tag.replace_with(f"[{text}][{link_map[ref]}]")
-            return
+            tag.insert(0, "[")
+            tag.append(f"][{link_map[ref]}]")
             tag.unwrap()
             return
-        # Lists
-        if tag.name == "li":
-            tag.unwrap()
-            return
-        if tag.name in {"ul", "ol", "dl"}:
-            list_lines = tag.string.splitlines()
-            tag.string = "\t" + "\n\t".join(list_lines)
-        # TBD with link blocks
-        if tag.name in LINKBLOCKABLE:
-            text = str(tag.string)
-            if tag is link_block_tag:
-                # Add list of tags after large enough bodies of text
-                link_list = [f"\t[{index}]: {ref}"
-                    for ref, index in sorted(link_map.items(),
-                                             key=lambda pair: pair[1])]
-                link_block = "\n".join(link_list)
-                text += "\n\n" + link_block + "\n"
-                link_map.clear()
-                link_block_tag = None
-            tag.replace_with(text)
-            return
+        # link blocks
+        if tag is link_block_tag:
+            br = soup.new_tag("br")
+            br["type"] = "linkblock-pre"
+            tag.append(br)
+            for ref, k in sorted(link_map.items(), key=lambda pair: pair[1]):
+                br = soup.new_tag("br")
+                br["type"] = "linkref"
+                tag.append(br)
+                tag.append(f"\t[{k}]: {ref}")
+            br = soup.new_tag("br")
+            br["type"] = "linkblock-post"
+            tag.append(br)
+            link_map.clear()
+            link_block_tag = None
 
     process_tag(soup)
+
+
+def unwrap_blocks(soup: bs4.BeautifulSoup):
+    """Unwrap all block tags"""
+    for tag in soup(BLOCKS):
+        tag.unwrap()
+
+
+def brs2linebreaks(soup: bs4.BeautifulSoup):
+    """Replace br tags with linebreaks"""
+    # Decompose whitespace between br tags
+    for ws in soup(string=re.compile(r"^[  \t]*$")):
+        prev = ws.previous_sibling
+        next = ws.next_sibling
+        if prev and next and {prev.name, next.name} == {"br"}:
+           ws.decompose()
+    # Decompose some br tags considered superfluous
+    for br in soup.select("br"):
+        prev = br.previous_sibling
+        next = br.next_sibling
+        if prev and next and {prev.name, next.name} == {"br"}:
+            # print(prev, br, next)
+            prev_type = str(prev.get("type"))
+            br_type = str(br.get("type"))
+            next_type = str(next.get("type"))
+        else:
+            continue
+        # "br[type^='blocks'] + br[type='original'] + br[type^='blocks']"
+        if (prev_type.startswith("blocks")
+            and br_type == "original"
+            and next_type.startswith("blocks")):
+                prev.decompose()
+        # "br[type='linkblock-post'] + br[type^='blocks'] + br[type^='blocks']"
+        elif (prev_type == "linkblock-post"
+              and br_type.startswith("blocks")
+              and next_type.startswith("blocks")):
+                prev.decompose()
+        # "br[type^='blocks'] + br[type='original'] + br[type='original']"
+        elif (prev_type.startswith("blocks")
+              and br_type == "original"
+              and next_type == "original"):
+                prev.decompose()
+    for br in soup.select("br"):
+        # br.replace_with(f"\n[{br.get('type')}]")
+        br.replace_with("\n")
+    soup.smooth()

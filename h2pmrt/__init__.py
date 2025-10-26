@@ -29,6 +29,8 @@ def convert(html_string: str) -> str:
     img_refs = html.replace_imgs(soup)
     html.list_compilations(soup)
     html.tags2text(soup)
+    html.unwrap_blocks(soup)
+    html.brs2linebreaks(soup)
     output = str(soup.string)
     if img_refs:
         output += "\n" + img_refs
