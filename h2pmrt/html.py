@@ -277,7 +277,7 @@ def replace_imgs(soup: bs4.BeautifulSoup) -> str:
 
 
 def ul_compilation(soup: bs4.BeautifulSoup):
-    """Compile ul to div"""
+    """Compile ul"""
     UL_SYMBOLS = {
         "disc": "•",
         "circle": "◦",
@@ -300,10 +300,11 @@ def ul_compilation(soup: bs4.BeautifulSoup):
             else:
                 symbol = symbol_string
             li.insert(0, symbol + " ")
+    soup.smooth()
 
 
 def ol_compilation(soup: bs4.BeautifulSoup):
-    """Compile ol to div"""
+    """Compile ol"""
     TYPEATTR2LST = {
         "1": "decimal",
         "a": "lower-latin",
@@ -344,6 +345,19 @@ def ol_compilation(soup: bs4.BeautifulSoup):
                 li_lst = str(li["css-list-style-type"])
             li.insert(0, li_lst)
             counter += 1
+    soup.smooth()
+
+
+def list_compilations(soup: bs4.BeautifulSoup):
+    """Compile lists"""
+    ul_compilation(soup)
+    ol_compilation(soup)
+    # Indent lists
+    for somel in soup.select("ul, ol"):
+        somel.insert(0, "\t")
+        for br in somel("br"):
+            if br.next:
+                br.insert_after("\t")
 
 
 def markup2text(soup: bs4.BeautifulSoup):
