@@ -122,6 +122,18 @@ def sweat_whitespace(soup: bs4.BeautifulSoup):
                     sweating = True
                 # Add properly stripped back
                 string.replace_with(strippable)
+        for br in soup.select(
+            ",".join([tag + "> br:first-child" for tag in SWEATABLE])
+        ):
+            parent = br.parent
+            parent.insert_before(br.extract())
+            sweating = True
+        for br in soup.select(
+            ",".join([tag + "> br:last-child" for tag in SWEATABLE])
+        ):
+            parent = br.parent
+            parent.insert_after(br.extract())
+            sweating = True
     soup.smooth()
 
 
