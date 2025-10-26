@@ -272,11 +272,40 @@ def replace_headings(soup: bs4.BeautifulSoup):
         b.insert_before(signpost)
 
 
+def replace_anchors(soup: bs4.BeautifulSoup):
+    """Replace anchors with coinciding text and href"""
+    for a in soup.select("a"):
+        if not a.string:
+            continue
+        href = str(a.get("href", ""))
+        text = str(a.string)
+        href_parts = href.split(text)
+        if len(href_parts) == 2:
+            head = href_parts[0]
+            tail = href_parts[-1]
+            if head in {"mailto:", "phone:"} and tail == "":
+                a.replace_with(text)
+            elif (head == "" or head.endswith("://")) and tail in {"", "/"}:
+                a.replace_with(href)
+
+
+def replace_blockquotes(soup: bs4.BeautifulSoup):
+    """Replace blockquotes by preceding lines with poor man's quote chars"""
+    for blockquote in soup.select("blockquote"):
+        blockquote.insert(0, "> ")
+        for br in blockquote("br", recursive=False):
+            next = br.next
+            if next:
+                next.insert(0, "> ")
+
+
 def direct_replacements(soup: bs4.BeautifulSoup):
     """Replace some classes of tags directly"""
     replace_hrs(soup)
     replace_brs(soup)
     replace_headings(soup)
+    replace_anchors(soup)
+    replace_blockquotes(soup)
 
 
 def replace_imgs(soup: bs4.BeautifulSoup) -> str:
@@ -436,25 +465,9 @@ def tags2text(soup: bs4.BeautifulSoup):
             pass
             # print(f"+{tag.name}", end="")
         # It is a bug if tag does not have a (single) string at this point
-        # Quotes
-        if tag.name == "blockquote":
-            quoted_lines = tag.string.splitlines()
-            tag.replace_with("> " + "\n> ".join(quoted_lines))
-            return
         # Anchors
         if tag.name == "a":
             href = str(tag.get("href", ""))
-            text = str(tag.string)
-            href_parts = href.split(text)
-            if len(href_parts) == 2:
-                head = href_parts[0]
-                tail = href_parts[-1]
-                if head in {"mailto:", "phone:"} and tail == "":
-                    tag.replace_with(text)
-                    return
-                elif (head == "" or head.endswith("://")) and tail in {"", "/"}:
-                    tag.replace_with(href)
-                    return
             title = tag.get("title")
             if not title or title == href:
                 ref = href
