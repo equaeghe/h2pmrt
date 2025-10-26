@@ -13,6 +13,7 @@ def convert(html_string: str) -> str:
         soup.contents[0].decompose()
     css.cssprops2htmlattrs(soup)
     css.css2html_markup(soup)
+    css.cssmargin2br(soup)
     css.cssborder2hr(soup)
     html.sanitize_tree(soup)
     undo.ms_sender_identification(soup)
