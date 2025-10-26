@@ -18,7 +18,7 @@ BLOCKS = {
     "ol",
     "p", "pre",
     "section",
-    "table", "tbody", "tfoot", "thead",
+    "table", "tbody", "tfoot", "thead", "tr",
     "ul",
     "video"
 }
