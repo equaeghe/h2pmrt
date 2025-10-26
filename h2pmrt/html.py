@@ -158,17 +158,20 @@ def linebreak_blocks(soup: bs4.BeautifulSoup):
     for tag in soup(BLOCKS):
         parents.add(tag.parent)
     for parent in parents:
-        for whitespace in parent(string=re.compile("^ *$"), recursive=False):
+        for whitespace in parent(string=re.compile(r"^[  \t]*$"),
+                                 recursive=False):
             whitespace.decompose()
         for block_sibling in parent(BLOCKS, recursive=False):
             previous = block_sibling.previous_sibling
             next = block_sibling.next_sibling
             if previous:
-                linebreak = bs4.NavigableString("\n")
-                block_sibling.insert_before(linebreak)
+                br = soup.new_tag("br")
+                br["type"] = f"blocks-previous-{block_sibling.name}"
+                block_sibling.insert_before(br)
             if next and next.name not in BLOCKS:
-                linebreak = bs4.NavigableString("\n")
-                block_sibling.insert_after(linebreak)
+                br = soup.new_tag("br")
+                br["type"] = f"blocks-next-{block_sibling.name}"
+                block_sibling.insert_after(br)
 
 
 def remove_empty(soup: bs4.BeautifulSoup):
