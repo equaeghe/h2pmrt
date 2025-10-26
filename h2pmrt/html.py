@@ -32,6 +32,12 @@ def sanitize_tree(soup: bs4.BeautifulSoup):
         comment.decompose()
 
 
+def br_type_original(soup: bs4.BeautifulSoup):
+    """Add ’original’ type to br tags in original html"""
+    for br in soup.select("br"):
+        br["type"] = "original"
+
+
 def unwrap_spans(soup: bs4.BeautifulSoup):
     """Unwrap all span-like tags"""
     SPAN_LIKE = "span, font, center"
