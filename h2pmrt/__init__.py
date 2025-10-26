@@ -16,6 +16,7 @@ def convert(html_string: str) -> str:
     css.cssmargin2br(soup)
     css.cssborder2hr(soup)
     html.sanitize_tree(soup)
+    html.br_type_original(soup)
     undo.ms_sender_identification(soup)
     undo.link_rewriting(soup)
     html.direct_unwraps(soup)
