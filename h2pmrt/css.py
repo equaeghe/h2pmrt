@@ -6,6 +6,7 @@ def cssprops2htmlattrs(soup: bs4.BeautifulSoup):
     """Convert CSS properties to HTML attributes"""
     PROPERTIES_OF_INTEREST = {
         "border", "border-top", "border-bottom", "border-style",
+        "margin", "margin-left", "margin-top", "margin-bottom",
         "font-weight", "font-style", "text-decoration",
         "list-style-type"
     }
@@ -44,6 +45,42 @@ def css2html_markup(soup: bs4.BeautifulSoup):
             wrapper.extend(tag.contents)
             tag.clear()
             tag.append(wrapper)
+
+
+def attr2float(attr):
+    """Convert attribute to float, or None if not possible"""
+    try:
+        float(str(attr))
+    except ValueError:
+        return None
+    else:
+        return float(str(attr))
+
+
+def cssmargin2br(soup: bs4.BeautifulSoup):
+    """Convert CSS margin properties to br tags"""
+    # Transform margin to margin-left, margin-top, and margin-bottom
+    for tag in soup.select("[css-margin]"):
+        styles = str(tag["css-margin"]).split()
+        if len(styles) <= 2:
+            tag["css-margin-top"] = styles[0]
+            tag["css-margin-bottom"] = styles[0]
+        else:
+            tag["css-margin-top"] = styles[0]
+            tag["css-margin-bottom"] = styles[2]
+    # Deal with margin-top and margin-bottom
+    for tag in soup.select("[css-margin-top]"):
+        margin_size = attr2float(tag["css-margin-top"])
+        if margin_size and margin_size > 0:
+            br = soup.new_tag("br")
+            br["type"] = f"margin-top-{tag.name}"
+            tag.insert_before(br)
+    for tag in soup.select("[css-margin-bottom]"):
+        margin_size = attr2float(tag["css-margin-bottom"])
+        if margin_size and margin_size > 0:
+            br = soup.new_tag("br")
+            br["type"] = f"margin-bottom-{tag.name}"
+            tag.insert_after(br)
 
 
 def cssborder2hr(soup: bs4.BeautifulSoup):
