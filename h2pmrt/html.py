@@ -74,11 +74,23 @@ def unwrap_vertical_placement(soup: bs4.BeautifulSoup):
             sup.unwrap()
 
 
+def unwrap_table_cells(soup: bs4.BeautifulSoup):
+    """Unwrap all th an td tags, separating with tabs"""
+    for cell_name in {"th", "td"}:
+        cells = soup.select(cell_name)
+        for cell in cells:
+            next = cell.next_sibling
+            if next and next in cells:
+                next.insert(0, "\t")
+            cell.unwrap()
+
+
 def direct_unwraps(soup: bs4.BeautifulSoup):
     """Unwrap some classes of tags directly"""
     unwrap_spans(soup)
     unwrap_msoffice_tags(soup)
     unwrap_vertical_placement(soup)
+    unwrap_table_cells(soup)
     soup.smooth()
 
 
@@ -451,26 +463,7 @@ def tags2text(soup: bs4.BeautifulSoup):
                 link_counter += 1
             tag.replace_with(f"[{text}][{link_map[ref]}]")
             return
-        # Tables
-        if tag.name == "table":
             tag.unwrap()
-            return
-        if tag.name in {"thead", "tbody", "tfoot"}:
-            tag.unwrap()
-            return
-        if tag.name == "tr":
-            if (isinstance(tag.next_sibling, bs4.Tag)
-                and tag.next_sibling.name == "tr"):
-                tag.replace_with(tag.string + "\n")
-            else:
-                tag.unwrap()
-            return
-        if tag.name in {"th", "td"}:
-            if (isinstance(tag.next_sibling, bs4.Tag)
-                and tag.next_sibling.name in {"th", "td"}):
-                tag.replace_with(tag.string + "\t")
-            else:
-                tag.unwrap()
             return
         # Lists
         if tag.name == "li":
