@@ -116,16 +116,10 @@ def sweat_whitespace(soup: bs4.BeautifulSoup):
 def sweat_markup(soup: bs4.BeautifulSoup):
     """Move single child markup outside of anchor tags"""
     MARKUP = {"b", "strong", "i", "em", "u", "s"}
-    for a in soup.select("a"):
-        if not a.children:
-            return
-        children = list(a.children)
-        if len(children) == 1:
-            child = children[0]
-            if child.name in MARKUP:
-                markup = soup.new_tag(child.name)
-                a.wrap(markup)
-                child.unwrap()
+    for markup_name in MARKUP:
+        for markup in soup.select(f"a > {markup_name}:only-child"):
+            markup.parent.wrap(soup.new_tag(markup_name))
+            markup.unwrap()
 
 
 def sweat(soup: bs4.BeautifulSoup):
