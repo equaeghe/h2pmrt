@@ -363,12 +363,6 @@ def ol_compilation(soup: bs4.BeautifulSoup):
             "xvi", "xvii", "xviii", "xix", "xx"
         ],
         "upper-roman": [
-            "i", "ii", "iii", "iv", "v",
-            "vi", "vii", "viii", "ix", "x",
-            "xi", "xii", "xiii", "xiv", "xv",
-            "xvi", "xvii", "xviii", "xix", "xx"
-        ],
-        "upper-roman": [
             "I", "II", "III", "IV", "V",
             "VI", "VII", "VIII", "IX", "X",
             "XI", "XII", "XIII", "XIV", "XV",
