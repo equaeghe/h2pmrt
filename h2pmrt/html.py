@@ -57,7 +57,7 @@ def unwrap_vertical_placement(soup: bs4.BeautifulSoup):
     REPLACEABLE = "0123456789+-n"
     SUB_REPLACEMENTS = "₀₁₂₃₄₅₆₇₈₉₊₋ₙ"
     SUP_REPLACEMENTS = "⁰¹²³⁴⁵⁶⁷⁸⁹⁺⁻ⁿ"
-    SUP_NO_CARET = {"st", "nd", "rd", "ste", "de"}
+    SUP_NO_CARET = {"st", "nd", "rd", "ste", "de", "e"}
     for sub in soup.select("sub"):
         if sub.string and len(sub.string) == 1 and sub.string in REPLACEABLE:
             sub.replace_with(SUB_REPLACEMENTS[REPLACEABLE.find(sub.string)])
