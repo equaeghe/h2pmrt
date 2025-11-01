@@ -33,9 +33,12 @@ def sanitize_tree(soup: bs4.BeautifulSoup):
 
 
 def br_type_original(soup: bs4.BeautifulSoup):
-    """Add ’original’ type to br tags in original html"""
+    """Add ’original’ type to br tags in original html and strip whitespace"""
     for br in soup.select("br"):
         br["type"] = "original"
+        next = br.next
+        if next and isinstance(next, bs4.NavigableString):
+            next.replace_with(next.lstrip())
 
 
 def unwrap_spans(soup: bs4.BeautifulSoup):
