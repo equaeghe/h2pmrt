@@ -77,23 +77,11 @@ def unwrap_vertical_placement(soup: bs4.BeautifulSoup):
             sup.unwrap()
 
 
-def unwrap_table_cells(soup: bs4.BeautifulSoup):
-    """Unwrap all th an td tags, separating with tabs"""
-    for cell_name in {"th", "td"}:
-        cells = soup.select(cell_name)
-        for cell in cells:
-            next = cell.next_sibling
-            if next and next in cells:
-                next.insert(0, "\t")
-            cell.unwrap()
-
-
 def direct_unwraps(soup: bs4.BeautifulSoup):
     """Unwrap some classes of tags directly"""
     unwrap_spans(soup)
     unwrap_msoffice_tags(soup)
     unwrap_vertical_placement(soup)
-    unwrap_table_cells(soup)
     soup.smooth()
 
 
@@ -158,10 +146,7 @@ def sweat(soup: bs4.BeautifulSoup):
 
 def linebreak_blocks(soup: bs4.BeautifulSoup):
     """Add a linebreak between sibling block-like elements"""
-    parents = set()
-    for tag in soup(BLOCKS):
-        parents.add(tag.parent)
-    for parent in parents:
+    for parent in soup.select(f"*:has({','.join(BLOCKS)})"):
         for whitespace in parent(string=re.compile(r"^[  \t]*$"),
                                  recursive=False):
             whitespace.decompose()
@@ -288,12 +273,30 @@ def replace_blockquotes(soup: bs4.BeautifulSoup):
                 next.insert(0, "> ")
 
 
+def unwrap_table_cells(soup: bs4.BeautifulSoup):
+    """Unwrap all th an td tags, separating with tabs"""
+    for parent in soup.select("*:has(> th, > td)"):
+        children = list(parent.children)
+        if len(children) > 1:
+            children = children[1:]
+            for child in children:
+                names = {child.name}
+                if child.previous:
+                    names.add(child.previous.name)
+                if len(names.difference({"br", "tr", "thead", "tfoot"})) == 2:
+                    child.insert_before("\t")
+    for cell in soup.select("th, td"):
+        cell.unwrap()
+
+
 def direct_replacements(soup: bs4.BeautifulSoup):
     """Replace some classes of tags directly"""
     replace_hrs(soup)
     replace_headings(soup)
     replace_anchors(soup)
     replace_blockquotes(soup)
+    unwrap_table_cells(soup)
+    soup.smooth()
 
 
 def replace_imgs(soup: bs4.BeautifulSoup) -> str:
