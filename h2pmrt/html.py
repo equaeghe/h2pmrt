@@ -507,25 +507,10 @@ def brs2linebreaks(soup: bs4.BeautifulSoup):
         next = br.next_sibling
         if prev and next and {prev.name, next.name} == {"br"}:
             # print(prev, br, next)
-            prev_type = str(prev.get("type"))
-            br_type = str(br.get("type"))
-            next_type = str(next.get("type"))
+            types = {str(tag.get("type")) for tag in (prev, br, next)}
         else:
             continue
-        # "br[type^='blocks'] + br[type='original'] + br[type^='blocks']"
-        if (prev_type.startswith("blocks")
-            and br_type == "original"
-            and next_type.startswith("blocks")):
-                prev.decompose()
-        # "br[type='linkblock-post'] + br[type^='blocks'] + br[type^='blocks']"
-        elif (prev_type == "linkblock-post"
-              and br_type.startswith("blocks")
-              and next_type.startswith("blocks")):
-                prev.decompose()
-        # "br[type^='blocks'] + br[type='original'] + br[type='original']"
-        elif (prev_type.startswith("blocks")
-              and br_type == "original"
-              and next_type == "original"):
+        if len(types) == 3 or len(types) == 2 and br.get("type") == "original":
                 prev.decompose()
     for br in soup.select("br"):
         # br.replace_with(f"\n[{br.get('type')}]")
