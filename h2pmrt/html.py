@@ -6,21 +6,43 @@ import urllib.parse as up
 
 
 BLOCKS = {
-    "address", "article", "aside",
+    "address",
+    "article",
+    "aside",
     "blockquote",
     "canvas",
-    "dd", "div", "dl", "dt",
-    "fieldset", "figcaption", "figure", "footer", "form",
-    "h1", "h2", "h3", "h4", "h5", "h6", "header", "hr",
+    "dd",
+    "div",
+    "dl",
+    "dt",
+    "fieldset",
+    "figcaption",
+    "figure",
+    "footer",
+    "form",
+    "h1",
+    "h2",
+    "h3",
+    "h4",
+    "h5",
+    "h6",
+    "header",
+    "hr",
     "li",
     "main",
-    "nav", "noscript",
+    "nav",
+    "noscript",
     "ol",
-    "p", "pre",
+    "p",
+    "pre",
     "section",
-    "table", "tbody", "tfoot", "thead", "tr",
+    "table",
+    "tbody",
+    "tfoot",
+    "thead",
+    "tr",
     "ul",
-    "video"
+    "video",
 }
 
 
@@ -98,14 +120,14 @@ def sweat_whitespace(soup: bs4.BeautifulSoup):
                 unstripped = str(string)
                 strippable = unstripped
                 # Add left
-                lws = unstripped[:len(unstripped)-len(unstripped.lstrip())]
+                lws = unstripped[: len(unstripped) - len(unstripped.lstrip())]
                 if lws and not string.previous_sibling:
                     lws = bs4.NavigableString(lws)
                     parent.insert_before(lws)
                     strippable = strippable.lstrip()
                     sweating = True
                 # Add right
-                rws = unstripped[len(unstripped.rstrip()):]
+                rws = unstripped[len(unstripped.rstrip()) :]
                 if rws and not string.next_sibling:
                     rws = bs4.NavigableString(rws)
                     parent.insert_after(rws)
@@ -113,9 +135,7 @@ def sweat_whitespace(soup: bs4.BeautifulSoup):
                     sweating = True
                 # Add properly stripped back
                 string.replace_with(strippable)
-        for tag in soup.select(
-            ",".join([tag + ":has(> br)" for tag in SWEATABLE])
-        ):
+        for tag in soup.select(",".join([tag + ":has(> br)" for tag in SWEATABLE])):
             children = list(tag.children)
             outer = (children[0], children[-1])
             if outer[0].name == "br":
@@ -147,8 +167,7 @@ def sweat(soup: bs4.BeautifulSoup):
 def linebreak_blocks(soup: bs4.BeautifulSoup):
     """Add a linebreak between sibling block-like elements"""
     for parent in soup.select(f"*:has({','.join(BLOCKS)})"):
-        for whitespace in parent(string=re.compile(r"^[  \t]*$"),
-                                 recursive=False):
+        for whitespace in parent(string=re.compile(r"^[  \t]*$"), recursive=False):
             whitespace.decompose()
         for block_sibling in parent(BLOCKS, recursive=False):
             previous = block_sibling.previous_sibling
@@ -173,7 +192,7 @@ def remove_empty(soup: bs4.BeautifulSoup):
             assert isinstance(tag, bs4.Tag)
             if list(tag.children) in ([], [""]):
                 tag.decompose()
-                maybe_some_empty_still = True # decompose may create empty tags
+                maybe_some_empty_still = True  # decompose may create empty tags
         soup.smooth()
 
 
@@ -206,8 +225,10 @@ def merge_markup(soup: bs4.BeautifulSoup):
                 mergeable_tags = []
                 next_tag = tag.next_sibling
                 assert next_tag is not None
-                if (isinstance(next_tag, bs4.NavigableString)
-                    and str(next_tag).isspace()):
+                if (
+                    isinstance(next_tag, bs4.NavigableString)
+                    and str(next_tag).isspace()
+                ):
                     # deal with whitespace
                     ws_tag = next_tag
                     mergeable_tags.append(ws_tag)
@@ -314,20 +335,23 @@ def replace_imgs(soup: bs4.BeautifulSoup) -> str:
             alt_text = alt_text.split(".")[0].replace("_", " ")
         img.replace_with("{" + alt_text + "}{" + str(img_refs[img_ref]) + "}")
     img_refs_text = (
-        "\n" + "═" * 40 + "\n" +
-        "\n".join("{" + str(i) + "}: " + ref for ref, i in img_refs.items()) +
-        "\n" + "═" * 40
-    ) if img_refs else ""
+        (
+            "\n"
+            + "═" * 40
+            + "\n"
+            + "\n".join("{" + str(i) + "}: " + ref for ref, i in img_refs.items())
+            + "\n"
+            + "═" * 40
+        )
+        if img_refs
+        else ""
+    )
     return img_refs_text
 
 
 def ul_compilation(soup: bs4.BeautifulSoup):
     """Compile ul"""
-    UL_SYMBOLS = {
-        "disc": "•",
-        "circle": "◦",
-        "square": "▪"
-    }
+    UL_SYMBOLS = {"disc": "•", "circle": "◦", "square": "▪"}
     for menu in soup.select("menu"):
         menu.name = "ul"
     for ul in soup.select("ul"):
@@ -355,23 +379,55 @@ def ol_compilation(soup: bs4.BeautifulSoup):
         "a": "lower-latin",
         "A": "upper-latin",
         "i": "lower-roman",
-        "I": "upper-roman"
+        "I": "upper-roman",
     }
     LST2INSDICES = {
-        "decimal": [str(k) for k in range(1,27)],
+        "decimal": [str(k) for k in range(1, 27)],
         "lower-latin": "abcdefghijklmnopqrstuvw",
         "upper-latin": "ABCDEFGHIJKLMNOPQRSTUVW",
         "lower-roman": [
-            "i", "ii", "iii", "iv", "v",
-            "vi", "vii", "viii", "ix", "x",
-            "xi", "xii", "xiii", "xiv", "xv",
-            "xvi", "xvii", "xviii", "xix", "xx"
+            "i",
+            "ii",
+            "iii",
+            "iv",
+            "v",
+            "vi",
+            "vii",
+            "viii",
+            "ix",
+            "x",
+            "xi",
+            "xii",
+            "xiii",
+            "xiv",
+            "xv",
+            "xvi",
+            "xvii",
+            "xviii",
+            "xix",
+            "xx",
         ],
         "upper-roman": [
-            "I", "II", "III", "IV", "V",
-            "VI", "VII", "VIII", "IX", "X",
-            "XI", "XII", "XIII", "XIV", "XV",
-            "XVI", "XVII", "XVIII", "XIX", "XX"
+            "I",
+            "II",
+            "III",
+            "IV",
+            "V",
+            "VI",
+            "VII",
+            "VIII",
+            "IX",
+            "X",
+            "XI",
+            "XII",
+            "XIII",
+            "XIV",
+            "XV",
+            "XVI",
+            "XVII",
+            "XVIII",
+            "XIX",
+            "XX",
         ],
     }
     for ol in soup.select("ol"):
@@ -406,7 +462,7 @@ def markup2text(soup: bs4.BeautifulSoup):
         "i, em": "/",
         "a > u, u:has(> a)": "",
         "u": "_",
-        "s": "~"
+        "s": "~",
     }
     for selector, delimiter in MARKUP_MAP.items():
         for tag in soup.select(selector):
@@ -419,9 +475,9 @@ def markup2text(soup: bs4.BeautifulSoup):
 def tags2text(soup: bs4.BeautifulSoup):
     """Replace tags by poor man's rich text"""
     LINKBLOCKABLE = {"body", "section", "div", "p", "ol", "ul"}
-    link_counter : int = 1
+    link_counter: int = 1
     link_block_tag = None
-    link_map : Dict[str, int] = dict()
+    link_map: Dict[str, int] = dict()
 
     def process_tag(tag: bs4.Tag):
         """Recursively replace composite tags by poor man's rich texts"""
@@ -453,9 +509,10 @@ def tags2text(soup: bs4.BeautifulSoup):
                 if not link_block_tag:
                     linkblockable_found = False
                     while not linkblockable_found:
-                        if (candidate.name == "body" or
-                            (candidate.name in LINKBLOCKABLE and
-                             candidate.parent.name in LINKBLOCKABLE)):
+                        if candidate.name == "body" or (
+                            candidate.name in LINKBLOCKABLE
+                            and candidate.parent.name in LINKBLOCKABLE
+                        ):
                             link_block_tag = candidate
                             linkblockable_found = True
                         else:
@@ -498,7 +555,7 @@ def brs2linebreaks(soup: bs4.BeautifulSoup):
         prev = ws.previous_sibling
         next = ws.next_sibling
         if prev and next and {prev.name, next.name} == {"br"}:
-           ws.decompose()
+            ws.decompose()
     # Decompose some br tags considered superfluous
     for br in soup.select("br"):
         prev = br.previous_sibling
@@ -509,7 +566,7 @@ def brs2linebreaks(soup: bs4.BeautifulSoup):
         else:
             continue
         if len(types) == 3 or len(types) == 2 and br.get("type") == "original":
-                prev.decompose()
+            prev.decompose()
     for br in soup.select("br"):
         # br.replace_with(f"\n[{br.get('type')}]")
         br.replace_with("\n")
