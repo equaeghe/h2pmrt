@@ -267,10 +267,8 @@ def replace_blockquotes(soup: bs4.BeautifulSoup):
     """Replace blockquotes by preceding lines with poor man's quote chars"""
     for blockquote in soup.select("blockquote"):
         blockquote.insert(0, "> ")
-        for br in blockquote("br", recursive=False):
-            next = br.next
-            if next:
-                next.insert(0, "> ")
+        for br in blockquote.select("br"):
+            br.insert_after("> ")
 
 
 def unwrap_table_cells(soup: bs4.BeautifulSoup):
