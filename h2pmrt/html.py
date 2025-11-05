@@ -68,6 +68,10 @@ def unwrap_spans(soup: bs4.BeautifulSoup):
     SPAN_LIKE = "span, font, center"
     for tag in soup.select(SPAN_LIKE):
         tag.unwrap()
+    # Now that span-likes are gone, we can deal with some special cases
+    LINK_UNDERLINING = "a > u, u:has(> a)"
+    for tag in soup.select(LINK_UNDERLINING):
+        tag.unwrap()
 
 
 def unwrap_msoffice_tags(soup: bs4.BeautifulSoup):
@@ -460,12 +464,12 @@ def markup2text(soup: bs4.BeautifulSoup):
     MARKUP_MAP = {
         "b, strong": "*",
         "i, em": "/",
-        "a > u, u:has(> a)": "",
         "u": "_",
         "s": "~",
     }
     for selector, delimiter in MARKUP_MAP.items():
         for tag in soup.select(selector):
+            print(tag)
             tag.insert(0, delimiter)
             tag.append(delimiter)
             tag.smooth()
