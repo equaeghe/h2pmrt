@@ -184,6 +184,7 @@ def sweat_markup(soup: bs4.BeautifulSoup):
 def sweat(soup: bs4.BeautifulSoup):
     """Move all kinds of material outwards"""
     sweat_whitespace(soup)
+    trim_whitespace(soup)
     sweat_markup(soup)
 
 
