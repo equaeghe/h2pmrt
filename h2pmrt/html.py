@@ -122,44 +122,54 @@ def direct_unwraps(soup: bs4.BeautifulSoup):
 
 def sweat_whitespace(soup: bs4.BeautifulSoup):
     """Iteratively move trimmable whitespace outside of tags"""
-    SWEATABLE = {"a", "b", "strong", "i", "em", "u", "s"}
+    SWEATABLE = "a, b, strong, i, em, u, s"
+    SELECTION_TUPLES = [
+        (
+            0,
+            lambda tag: tag.insert_before,
+            lambda string: string[: len(string) - len(string.lstrip())],
+            str.lstrip,
+        ),
+        (
+            -1,
+            lambda tag: tag.insert_after,
+            lambda string: string[len(string.rstrip()) :],
+            str.rstrip,
+        ),
+    ]
     sweating = True
     while sweating:
         sweating = False
-        for string in soup(string=True):
-            parent = string.parent
-            if isinstance(parent, bs4.Tag) and parent.name in SWEATABLE:
-                # Strip
-                unstripped = str(string)
-                strippable = unstripped
-                # Add left
-                lws = unstripped[: len(unstripped) - len(unstripped.lstrip())]
-                if lws and not string.previous_sibling:
-                    lws = bs4.NavigableString(lws)
-                    parent.insert_before(lws)
-                    strippable = strippable.lstrip()
-                    sweating = True
-                # Add right
-                rws = unstripped[len(unstripped.rstrip()) :]
-                if rws and not string.next_sibling:
-                    rws = bs4.NavigableString(rws)
-                    parent.insert_after(rws)
-                    strippable = strippable.rstrip()
-                    sweating = True
-                # Add properly stripped back
-                string.replace_with(strippable)
-        for tag in soup.select(",".join([tag + ":has(> br)" for tag in SWEATABLE])):
-            children = list(tag.children)
-            outer = (children[0], children[-1])
-            if outer[0].name == "br":
-                tag.insert_before(outer[0].extract())
-                sweating = True
-            if outer[0] is outer[-1]:
-                continue
-            if outer[-1].name == "br":
-                tag.insert_after(outer[1].extract())
-                sweating = True
+        for child_index, inserter, stripped, stripper in SELECTION_TUPLES:
+            for tag in soup.select(SWEATABLE):
+                children = list(tag.children)
+                if children != []:
+                    child = children[child_index]
+                    inserter_for_tag = inserter(tag)
+                    match child.name:
+                        case "br":
+                            inserter_for_tag(child.extract())
+                            sweating = True
+                        case None:
+                            string = str(child)
+                            if string:
+                                affix = stripped(string)
+                                if affix:
+                                    inserter_for_tag(affix)
+                                    child.replace_with(stripper(string))
+                                    sweating = True
+                            else:
+                                child.decompose()
+                                sweating = True
     soup.smooth()
+
+
+def trim_whitespace(soup: bs4.BeautifulSoup):
+    """Trim accumulated whitespace from strings"""
+    for string in soup(string=re.compile(r"^ {2,}")):
+        string.replace_with(" " + string.lstrip(" "))
+    for string in soup(string=re.compile(r" {2,}$")):
+        string.replace_with(string.rstrip(" ") + " ")
 
 
 def sweat_markup(soup: bs4.BeautifulSoup):
