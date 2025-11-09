@@ -74,44 +74,10 @@ def cssmargin2br(soup: bs4.BeautifulSoup):
     # Transform margin to margin-left, margin-top, and margin-bottom
     for tag in soup.select("[css-margin]"):
         styles = str(tag["css-margin"]).split()
-        if len(styles) <= 2:
-            tag["css-margin-top"] = styles[0]
-            tag["css-margin-bottom"] = styles[0]
-        else:
-            tag["css-margin-top"] = styles[0]
-            tag["css-margin-bottom"] = styles[2]
-    # Deal with margin-top and margin-bottom
-    for tag in soup.select("[css-margin-top]"):
-        margin_size = attr2float(tag["css-margin-top"])
-        if margin_size and margin_size > 0:
-            br = soup.new_tag("br")
-            br["type"] = f"margin-top-{tag.name}"
-            tag.insert_before(br)
-    for tag in soup.select("[css-margin-bottom]"):
-        margin_size = attr2float(tag["css-margin-bottom"])
-        if margin_size and margin_size > 0:
-            br = soup.new_tag("br")
-            br["type"] = f"margin-bottom-{tag.name}"
-            tag.insert_after(br)
 
 
-def cssborder2hr(soup: bs4.BeautifulSoup):
-    """Convert CSS border properties to styled hr tags"""
-    STYLES = {
-        "dotted",
-        "dashed",
-        "solid",
-        "double",
-        "groove",
-        "ridge",
-        "inset",
-        "outset",
-    }
-    CSS_BORDERS = {
-        property: ",".join(f"[css-{property}*={style}]:not(hr)" for style in STYLES)
-        for property in {"border", "border-top", "border-bottom"}
-    }
-    # Transform border-style to border/border-top/border-bottom
+def borderstyle2border(soup: bs4.BeautifulSoup):
+    """Transform border-style to border/border-top/border-bottom"""
     for tag in soup.select("[css-border-style]"):
         styles = str(tag["css-border-style"]).split()
         if len(styles) <= 2:
@@ -124,18 +90,44 @@ def cssborder2hr(soup: bs4.BeautifulSoup):
             else:
                 tag["css-border-top"] = top
                 tag["css-border-bottom"] = bottom
-    # Deal with border, border-top, and border-bottom
+
+
+def border2tag(soup: bs4.BeautifulSoup):
+    """Convert CSS border properties to styled tags"""
+    STYLES = {
+        "dotted",
+        "dashed",
+        "solid",
+        "double",
+        "groove",
+        "ridge",
+        "inset",
+        "outset",
+    }
+    CSS_BORDERS = {
+        property: ",".join(
+            f"[block][css-{property}*={style}]:not(hr)" for style in STYLES
+        )
+        for property in {"border", "border-top", "border-bottom"}
+    }
     for property, selection in CSS_BORDERS.items():
         for tag in soup.select(selection):
-            if property in {"border", "border-top"}:
+            before = after = False
+            match property:
+                case "border":
+                    before = after = True
+                case "border-top":
+                    before = True
+                case "border-bottom":
+                    after = True
+            for position in {"before", "after"}:
                 hr = soup.new_tag("hr")
-                attr_name = (
-                    "css-" + property + "-before" if property == "border" else ""
-                )
+                hr["block"] = "inherent"
+                attr_name = "css-" + property
+                if property == "border":
+                    attr_name += "-" + position
                 hr[attr_name] = tag[f"css-{property}"]
-                tag.insert_before(hr)
-            if property in {"border", "bordor-bottom"}:
-                hr = soup.new_tag("hr")
-                attr_name = "css-" + property + "-after" if property == "border" else ""
-                hr[attr_name] = tag[f"css-{property}"]
-                tag.insert_after(hr)
+                if before and position == "before":
+                    tag.insert_before(hr)
+                if after and position == "after":
+                    tag.insert_after(hr)
