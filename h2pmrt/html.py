@@ -5,45 +5,54 @@ import os.path as op
 import urllib.parse as up
 
 
-BLOCKS = {
-    "address",
-    "article",
-    "aside",
-    "blockquote",
-    "canvas",
-    "dd",
-    "div",
-    "dl",
-    "dt",
-    "fieldset",
-    "figcaption",
-    "figure",
-    "footer",
-    "form",
-    "h1",
-    "h2",
-    "h3",
-    "h4",
-    "h5",
-    "h6",
-    "header",
-    "hr",
-    "li",
-    "main",
-    "nav",
-    "noscript",
-    "ol",
-    "p",
-    "pre",
-    "section",
-    "table",
-    "tbody",
-    "tfoot",
-    "thead",
-    "tr",
-    "ul",
-    "video",
-}
+def mark_blocks(soup: bs4.BeautifulSoup):
+    """Mark tags that should be treated as block-type"""
+    BLOCKS = {
+        "address",
+        "article",
+        "aside",
+        "blockquote",
+        "canvas",
+        "dd",
+        "div",
+        "dl",
+        "dt",
+        "fieldset",
+        "figcaption",
+        "figure",
+        "footer",
+        "form",
+        "h1",
+        "h2",
+        "h3",
+        "h4",
+        "h5",
+        "h6",
+        "header",
+        "hr",
+        "li",
+        "main",
+        "nav",
+        "noscript",
+        "ol",
+        "p",
+        "pre",
+        "section",
+        "table",
+        "tbody",
+        "tfoot",
+        "thead",
+        "tr",
+        "ul",
+        "video",
+    }
+    for tag in soup.select(",".join(BLOCKS)):
+        tag["block"] = "inherent"
+    for tag in soup.select("*:has(br)"):
+        if tag.get("block"):
+            tag["block"] += " br-descendants"
+        else:
+            tag["block"] = "br-descendants"
 
 
 def sanitize_tree(soup: bs4.BeautifulSoup):
@@ -170,17 +179,19 @@ def sweat(soup: bs4.BeautifulSoup):
 
 def linebreak_blocks(soup: bs4.BeautifulSoup):
     """Add a linebreak between sibling block-like elements"""
-    for parent in soup.select(f"*:has({','.join(BLOCKS)})"):
+    for parent in soup.select("*:has([block])"):
         for whitespace in parent(string=re.compile(r"^[  \t]*$"), recursive=False):
             whitespace.decompose()
-        for block_sibling in parent(BLOCKS, recursive=False):
+        for block_sibling in parent.css.filter("[block]"):
             previous = block_sibling.previous_sibling
             next = block_sibling.next_sibling
             if previous:
                 br = soup.new_tag("br")
                 br["type"] = f"blocks-previous-{block_sibling.name}"
                 block_sibling.insert_before(br)
-            if next and next.name not in BLOCKS:
+            if next and (
+                isinstance(next, bs4.NavigableString) or not next.css.match("[block]")
+            ):
                 br = soup.new_tag("br")
                 br["type"] = f"blocks-next-{block_sibling.name}"
                 block_sibling.insert_after(br)
@@ -546,9 +557,9 @@ def tags2text(soup: bs4.BeautifulSoup):
     process_tag(soup)
 
 
-def unwrap_blocks(soup: bs4.BeautifulSoup):
-    """Unwrap all block tags"""
-    for tag in soup(BLOCKS):
+def unwrap_remaining(soup: bs4.BeautifulSoup):
+    """Unwrap all non-br tags"""
+    for tag in soup.select("*:not(br)"):
         tag.unwrap()
 
 
