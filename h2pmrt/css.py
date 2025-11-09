@@ -74,6 +74,20 @@ def cssmargin2br(soup: bs4.BeautifulSoup):
     # Transform margin to margin-left, margin-top, and margin-bottom
     for tag in soup.select("[css-margin]"):
         styles = str(tag["css-margin"]).split()
+        tag["css-margin-top"] = styles[0]
+        tag["css-margin-bottom"] = styles[2 * (len(styles) > 2)]
+    # Deal with margin-top and margin-bottom
+    for position in {"top", "bottom"}:
+        for tag in soup.select(f"[css-margin-{position}]"):
+            margin_size = attr2float(tag[f"css-margin-{position}"])
+            if margin_size and margin_size > 0:
+                br = soup.new_tag("br")
+                br["type"] = f"margin-{position}-{tag.name}"
+                match position:
+                    case "top":
+                        tag.insert_before(br)
+                    case "bottom":
+                        tag.insert_after(br)
 
 
 def borderstyle2border(soup: bs4.BeautifulSoup):
