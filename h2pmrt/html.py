@@ -490,7 +490,6 @@ def markup2text(soup: bs4.BeautifulSoup):
     }
     for selector, delimiter in MARKUP_MAP.items():
         for tag in soup.select(selector):
-            print(tag)
             tag.insert(0, delimiter)
             tag.append(delimiter)
             tag.smooth()
