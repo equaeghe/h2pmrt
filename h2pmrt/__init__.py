@@ -11,6 +11,7 @@ def convert(html_string: str) -> str:
     soup = bs4.BeautifulSoup(text.cleanup(html_string), "html5lib")
     if isinstance(soup.contents[0], bs4.Doctype):
         soup.contents[0].decompose()
+    html.mark_blocks(soup)
     css.cssprops2htmlattrs(soup)
     css.css2html_markup(soup)
     css.cssmargin2br(soup)
@@ -29,7 +30,7 @@ def convert(html_string: str) -> str:
     img_refs = html.replace_imgs(soup)
     html.list_compilations(soup)
     html.tags2text(soup)
-    html.unwrap_blocks(soup)
+    html.unwrap_remaining(soup)
     html.brs2linebreaks(soup)
     output = str(soup.string)
     if img_refs:
