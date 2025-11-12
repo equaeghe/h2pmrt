@@ -492,11 +492,6 @@ def markup2text(soup: bs4.BeautifulSoup):
         "s": "~",
     }
     for selector, delimiter in MARKUP_MAP.items():
-        # Do not add markup around img replacements
-        for tag in soup.select(f"{selector}:has(> img)"):
-            if len(list(tag.children)) == 1:
-                tag.unwrap()
-        # Add markup around all other cases
         for tag in soup.select(selector):
             tag.insert(0, delimiter)
             tag.append(delimiter)
