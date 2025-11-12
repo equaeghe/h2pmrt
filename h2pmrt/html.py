@@ -493,6 +493,11 @@ def markup2text(soup: bs4.BeautifulSoup):
     }
     for selector, delimiter in MARKUP_MAP.items():
         for tag in soup.select(selector):
+            children = list(tag.children)
+            if len(children) == 1 and children[0].name == "img":
+                # Do not add markup around img replacements
+                tag.unwrap()
+                continue
             tag.insert(0, delimiter)
             tag.append(delimiter)
             tag.smooth()
