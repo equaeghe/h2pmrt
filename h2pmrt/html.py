@@ -250,7 +250,6 @@ def merge_markup(soup: bs4.BeautifulSoup):
                 tag = siblings.pop()
                 mergeable_tags = []
                 next_tag = tag.next_sibling
-                assert next_tag is not None
                 if (
                     isinstance(next_tag, bs4.NavigableString)
                     and str(next_tag).isspace()
