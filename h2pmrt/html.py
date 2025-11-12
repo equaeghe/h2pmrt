@@ -293,11 +293,14 @@ def replace_headings(soup: bs4.BeautifulSoup):
 
 
 def replace_anchors(soup: bs4.BeautifulSoup):
-    """Replace anchors with coinciding text and href"""
+    """Replace anchors with coinciding text and href or empty"""
     for a in soup.select("a"):
         if not a.string:
             continue
         href = str(a.get("href", ""))
+        if href == "":
+            a.unwrap()
+            continue
         text = str(a.string)
         href_parts = href.split(text)
         if len(href_parts) == 2:
