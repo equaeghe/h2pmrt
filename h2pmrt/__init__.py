@@ -32,6 +32,8 @@ def convert(html_string: str) -> str:
     html.list_compilations(soup)
     html.tags2text(soup)
     html.unwrap_remaining(soup)
+    html.cull_brs(soup)
+    html.replace_blockquotes(soup)
     html.brs2linebreaks(soup)
     output = str(soup.string)
     if img_refs:
