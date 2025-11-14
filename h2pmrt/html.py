@@ -302,22 +302,15 @@ def replace_anchors(soup: bs4.BeautifulSoup):
             a.unwrap()
             continue
         text = str(a.string)
-        href_parts = href.split(text)
+        href_parts = href.split(text.strip("</>"))
         if len(href_parts) == 2:
             head = href_parts[0]
             tail = href_parts[-1]
-            if head in {"mailto:", "phone:"} and tail == "":
-                a.replace_with(text)
-            elif (head == "" or head.endswith("://")) and tail in {"", "/"}:
-                a.replace_with(href)
-
-
-def replace_blockquotes(soup: bs4.BeautifulSoup):
-    """Replace blockquotes by preceding lines with poor man's quote chars"""
-    for blockquote in soup.select("blockquote"):
-        blockquote.insert(0, "> ")
-        for br in blockquote.select("br"):
-            br.insert_after("> ")
+            match (head, tail):
+                case ("", "") | ("mailto:", "") | ("phone:", ""):
+                    a.replace_with(text)
+                case ("http://", "") | ("http://", ""):
+                    a.replace_with(href)
 
 
 def unwrap_table_cells(soup: bs4.BeautifulSoup):
@@ -341,7 +334,6 @@ def direct_replacements(soup: bs4.BeautifulSoup):
     replace_hrs(soup)
     replace_headings(soup)
     replace_anchors(soup)
-    replace_blockquotes(soup)
     unwrap_table_cells(soup)
     soup.smooth()
 
@@ -575,13 +567,13 @@ def tags2text(soup: bs4.BeautifulSoup):
 
 
 def unwrap_remaining(soup: bs4.BeautifulSoup):
-    """Unwrap all non-br tags"""
-    for tag in soup.select("*:not(br)"):
+    """Unwrap all non-br and non-blockquote tags"""
+    for tag in soup.select("*:not(br, blockquote)"):
         tag.unwrap()
 
 
-def brs2linebreaks(soup: bs4.BeautifulSoup):
-    """Replace br tags with linebreaks"""
+def cull_brs(soup: bs4.BeautifulSoup):
+    """Cull br tags and interspersed whitespace considered superfluous"""
     # Decompose whitespace between br tags
     for ws in soup(string=re.compile(r"^[  \t]*$")):
         prev = ws.previous_sibling
@@ -599,6 +591,19 @@ def brs2linebreaks(soup: bs4.BeautifulSoup):
             continue
         if len(types) == 3 or len(types) == 2 and br.get("type") == "original":
             prev.decompose()
+
+
+def replace_blockquotes(soup: bs4.BeautifulSoup):
+    """Replace blockquotes by preceding lines with poor man's quote chars"""
+    for blockquote in soup.select("blockquote"):
+        blockquote.insert(0, "> ")
+        for br in blockquote.select("br"):
+            br.insert_after("> ")
+        blockquote.unwrap()
+
+
+def brs2linebreaks(soup: bs4.BeautifulSoup):
+    """Replace br tags with linebreaks"""
     for br in soup.select("br"):
         # br.replace_with(f"\n[{br.get('type')}]")
         br.replace_with("\n")
