@@ -11,6 +11,7 @@ def convert(html_string: str) -> str:
     soup = bs4.BeautifulSoup(text.cleanup(html_string), "html5lib")
     if isinstance(soup.contents[0], bs4.Doctype):
         soup.contents[0].decompose()
+    undo.tue_phising_note(soup)
     html.mark_blocks(soup)
     css.cssprops2htmlattrs(soup)
     css.css2html_markup(soup)
