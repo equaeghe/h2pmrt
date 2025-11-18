@@ -302,7 +302,7 @@ def replace_anchors(soup: bs4.BeautifulSoup):
             a.unwrap()
             continue
         text = str(a.string)
-        href_parts = href.split(text.strip("</>"))
+        href_parts = href.rstrip("/").split(text.strip("</>"))
         if len(href_parts) == 2:
             head = href_parts[0]
             tail = href_parts[-1]
