@@ -40,3 +40,14 @@ def link_rewriting(soup: bs4.BeautifulSoup):
         assert isinstance(a, bs4.Tag)
         a["href"] = a["originalsrc"]
         del a["originalsrc"]
+
+
+def tue_phising_note(soup: bs4.BeautifulSoup):
+    """Remove phishing warning note added by TU/e LIS"""
+    STYLE = (
+        "border:solid #FFCACA 1.0pt; "
+        "padding:12.0pt 12.0pt 12.0pt 12.0pt; "
+        "background:lightyellow"
+    )
+    for div in soup.select(f"div[style='{STYLE}']"):
+        div.decompose()
