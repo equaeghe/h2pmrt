@@ -39,4 +39,4 @@ def convert(html_string: str) -> str:
     output = str(soup.string)
     if img_refs:
         output += "\n" + img_refs
-    return output
+    return output.strip("\n")
