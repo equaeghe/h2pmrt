@@ -340,6 +340,7 @@ def direct_replacements(soup: bs4.BeautifulSoup):
 
 def replace_imgs(soup: bs4.BeautifulSoup) -> str:
     """Replace img tags with approprate text representation"""
+    AUTOGEN = "Description automatically generated"
     img_refs = {}
     ref_counter = 0
     for img in soup.select("img"):
@@ -348,7 +349,7 @@ def replace_imgs(soup: bs4.BeautifulSoup) -> str:
             ref_counter += 1
             img_refs[img_ref] = ref_counter
         alt_text = img.get("alt")
-        if alt_text:
+        if alt_text and not alt_text.endswith(AUTOGEN):
             alt_text = str(alt_text)
         else:
             alt_text = up.unquote(op.basename(up.urlparse(img_ref).path))
