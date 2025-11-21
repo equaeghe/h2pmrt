@@ -198,13 +198,13 @@ def linebreak_blocks(soup: bs4.BeautifulSoup):
             next = block_sibling.next_sibling
             if previous:
                 br = soup.new_tag("br")
-                br["type"] = f"blocks-previous-{block_sibling.name}"
+                br["type"] = "blocks"
                 block_sibling.insert_before(br)
             if next and (
                 isinstance(next, bs4.NavigableString) or not next.css.match("[block]")
             ):
                 br = soup.new_tag("br")
-                br["type"] = f"blocks-next-{block_sibling.name}"
+                br["type"] = "blocks"
                 block_sibling.insert_after(br)
 
 
