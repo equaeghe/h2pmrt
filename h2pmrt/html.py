@@ -582,16 +582,38 @@ def cull_brs(soup: bs4.BeautifulSoup):
         if prev and next and {prev.name, next.name} == {"br"}:
             ws.decompose()
     # Decompose some br tags considered superfluous
-    for br in soup.select("br"):
-        prev = br.previous_sibling
-        next = br.next_sibling
-        if prev and next and {prev.name, next.name} == {"br"}:
-            # print(prev, br, next)
-            types = {str(tag.get("type")) for tag in (prev, br, next)}
-        else:
-            continue
-        if len(types) == 3 or len(types) == 2 and br.get("type") == "original":
-            prev.decompose()
+    maybe_superfluous = True
+    while maybe_superfluous:
+        maybe_superfluous = False
+        for br in soup.select("br"):
+            prev = br.previous_sibling
+            if not (prev and prev.name == "br"):
+                continue
+            next = br.next_sibling
+            next_type = next["type"] if next and next.name == "br" else None
+            match (prev["type"], br["type"], next_type):
+                case ("original", "blocks", _):
+                    prev.decompose()
+                    br["type"] = "original"
+                    maybe_superfluous = True
+                case ("blocks", "margin-bottom", _) | ("blocks", "margin-top", _):
+                    prev.decompose()
+                    maybe_superfluous = True
+                case ("margin-top", "blocks", _):
+                    prev.decompose()
+                    br["type"] = "margin-top"
+                    maybe_superfluous = True
+                case ("margin-bottom", "blocks", "blocks"):
+                    prev.decompose()
+                    br["type"] = "margin-bottom"
+                    maybe_superfluous = True
+                case ("margin-bottom", "margin-top", "margin-bottom"):
+                    prev.decompose()
+                    br["type"] = "eliminate"
+                    maybe_superfluous = True
+                case ("blocks", "blocks", "blocks") | ("eliminate", _, _):
+                    prev.decompose()
+                    maybe_superfluous = True
 
 
 def replace_blockquotes(soup: bs4.BeautifulSoup):
