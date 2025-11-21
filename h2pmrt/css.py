@@ -53,6 +53,22 @@ def cssprops2htmlattrs(soup: bs4.BeautifulSoup):
         del tag["style"]
 
 
+def add_defaults(soup: bs4.BeautifulSoup):
+    """Add some default styles that have a consequence in later processing"""
+    # https://www.w3.org/TR/CSS2/sample.html
+    NONZERO_VERTICAL_MARGIN = (
+        "h1, h2, h3, h4, h5, h6, "
+        "p, blockquote, *:not(ul, ol) ul, *:not(ul, ol) ol, dl, dir, menu "
+        "fieldset, form"
+    )
+    for tag in soup.select(NONZERO_VERTICAL_MARGIN):
+        if not tag.get("css-margin"):
+            if not tag.get("css-margin-top"):
+                tag["css-margin-top"] = "6"
+            if not tag.get("css-margin-bottom"):
+                tag["css-margin-bottom"] = "6"
+
+
 def css2html_markup(soup: bs4.BeautifulSoup):
     """Convert CSS markup to HTML markup tags"""
     CSS_MARKUP = {
