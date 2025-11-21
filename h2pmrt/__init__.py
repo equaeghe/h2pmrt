@@ -14,6 +14,8 @@ def convert(html_string: str) -> str:
     undo.tue_phising_note(soup)
     html.mark_blocks(soup)
     css.cssprops2htmlattrs(soup)
+    css.inline_style_blocks(soup)
+    css.add_defaults(soup)
     css.css2html_markup(soup)
     css.cssmargin2br(soup)
     css.borderstyle2border(soup)
