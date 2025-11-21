@@ -36,7 +36,7 @@ def convert(html_string: str) -> str:
     html.cull_brs(soup)
     html.replace_blockquotes(soup)
     html.brs2linebreaks(soup)
-    output = str(soup.string)
+    output = str(soup.string).strip("\n")
     if img_refs:
         output += "\n" + img_refs
-    return output.strip("\n")
+    return output
