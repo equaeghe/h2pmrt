@@ -2,6 +2,20 @@ import bs4
 import tinycss2 as tc2
 
 
+def inline_style_blocks(soup: bs4.BeautifulSoup):
+    """Inline style blocks (ad hoc hacks, for now)"""
+    # Option 1: use Python bindings of https://github.com/Stranger6667/css-inline
+    # Option 2: inline styles myself using tinycss2 and bs4
+
+    # MS styles often encountered (hack until style blocks are inlined)
+    for tag in soup.select(".MsoNormal, .MsoListParagraph"):
+        if not tag.get("css-margin"):
+            if not tag.get("css-margin-top"):
+                tag["css-margin-top"] = "0"
+            if not tag.get("css-margin-bottom"):
+                tag["css-margin-bottom"] = "0"
+
+
 def cssprops2htmlattrs(soup: bs4.BeautifulSoup):
     """Convert CSS properties to HTML attributes"""
     PROPERTIES_OF_INTEREST = {
@@ -23,9 +37,6 @@ def cssprops2htmlattrs(soup: bs4.BeautifulSoup):
         tc2.ast.LiteralToken,
         tc2.ast.FunctionBlock,
     }
-
-    # Inline style blocks
-    # TODO: use Python bindings of https://github.com/Stranger6667/css-inline
 
     for tag in soup.css.select("[style]"):
         # Find rules applied
