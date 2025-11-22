@@ -592,27 +592,51 @@ def cull_brs(soup: bs4.BeautifulSoup):
             next = br.next_sibling
             next_type = next["type"] if next and next.name == "br" else None
             match (prev["type"], br["type"], next_type):
-                case ("original", "blocks", _):
-                    prev.decompose()
-                    br["type"] = "original"
-                    maybe_superfluous = True
-                case ("blocks", "margin-bottom", _) | ("blocks", "margin-top", _):
-                    prev.decompose()
-                    maybe_superfluous = True
-                case ("margin-top", "blocks", _):
-                    prev.decompose()
-                    br["type"] = "margin-top"
-                    maybe_superfluous = True
-                case ("margin-bottom", "blocks", "blocks"):
+                case ("margin-bottom", "blocks", "margin-top"):
                     prev.decompose()
                     br["type"] = "margin-bottom"
                     maybe_superfluous = True
-                case ("margin-bottom", "margin-top", "margin-bottom"):
+                case ("margin-bottom", "margin-top", "blocks"):
                     prev.decompose()
-                    br["type"] = "eliminate"
+                    br["type"] = "margin-bottom"
+                    next["type"] = "margin-top"
                     maybe_superfluous = True
-                case ("blocks", "blocks", "blocks") | ("eliminate", _, _):
+                case ("margin-bottom", "margin-bottom", _):
                     prev.decompose()
+                    maybe_superfluous = True
+                case ("margin-top", "margin-top", _):
+                    prev.decompose()
+                    maybe_superfluous = True
+                case ("blocks", _, "blocks"):
+                    prev.decompose()
+                    maybe_superfluous = True
+                case ("blocks", "margin-bottom", "margin-top"):
+                    prev.decompose()
+                    maybe_superfluous = True
+                case ("margin-top", "margin-bottom", "margin-top"):
+                    prev.decompose()
+                    maybe_superfluous = True
+                case (_, "blocks", "blocks"):
+                    br["type"] = prev["type"]
+                    prev.decompose()
+                    maybe_superfluous = True
+                case ("original", "original", "blocks"):
+                    prev.decompose()
+                    next["type"] = "original"
+                    maybe_superfluous = True
+                case ("blocks", "original", _):
+                    prev.decompose()
+                    maybe_superfluous = True
+                case ("blocks", "margin-bottom", "linkblock-pre"):
+                    prev.decompose()
+                    maybe_superfluous = True
+                case ("blocks", "margin-bottom", "original"):
+                    prev.decompose()
+                    maybe_superfluous = True
+                case ("linkblock-post", "margin-bottom", "blocks"):
+                    prev.decompose()
+                    br["type"] = "linkblock-post"
+                    next["type"] = "margin-bottom"
                     maybe_superfluous = True
 
 
