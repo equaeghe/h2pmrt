@@ -56,11 +56,14 @@ def mark_blocks(soup: bs4.BeautifulSoup):
 
 def provide_alt_text(soup: bs4.BeautifulSoup):
     """Ensure that all img tags have an alt text"""
-    AUTOGEN = "Description automatically generated"
+    AUTOGEN = {
+        "Description automatically generated",
+        "AI-generated content may be incorrect.",
+    }
     for img in soup.select("img"):
         img_ref = str(img.get("src", ""))
         alt_text = img.get("alt")
-        if not alt_text or alt_text.endswith(AUTOGEN):
+        if not alt_text or any(alt_text.endswith(string) for string in AUTOGEN):
             alt_text = up.unquote(op.basename(up.urlparse(img_ref).path))
             alt_text = alt_text.split(".")[0].replace("_", " ")
             img["alt"] = alt_text
