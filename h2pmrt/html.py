@@ -347,7 +347,18 @@ def replace_imgs(soup: bs4.BeautifulSoup):
     """Replace img tags with cid src by unlinked text representation"""
     for img in soup.select("img"):
         if str(img.get("src", "")).startswith("cid:"):
-            img.replace_with("{" + img["alt"] + "}")
+            replacement = "{" + img["alt"] + "}"
+            # Special case some common mini-images
+            match replacement:
+                case "{Folder icon}":
+                    replacement = "📁"
+                case "{docx icon}":
+                    replacement = "📝"
+                case "{xlsx icon}":
+                    replacement = "▦"
+                case "{pdf icon}":
+                    replacement = "📄"
+            img.replace_with(replacement)
 
 
 def direct_replacements(soup: bs4.BeautifulSoup):
