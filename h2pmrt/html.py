@@ -55,6 +55,18 @@ def mark_blocks(soup: bs4.BeautifulSoup):
             tag["block"] = "br-descendants"
 
 
+def provide_alt_text(soup: bs4.BeautifulSoup):
+    """Ensure that all img tags have an alt text"""
+    AUTOGEN = "Description automatically generated"
+    for img in soup.select("img"):
+        img_ref = str(img.get("src", ""))
+        alt_text = img.get("alt")
+        if not alt_text or alt_text.endswith(AUTOGEN):
+            alt_text = up.unquote(op.basename(up.urlparse(img_ref).path))
+            alt_text = alt_text.split(".")[0].replace("_", " ")
+            img["alt"] = alt_text
+
+
 def sanitize_tree(soup: bs4.BeautifulSoup):
     """Remove tags that can only get in the way"""
     for tag in soup.select("head, style, meta"):
@@ -329,45 +341,21 @@ def unwrap_table_cells(soup: bs4.BeautifulSoup):
         cell.unwrap()
 
 
+def replace_imgs(soup: bs4.BeautifulSoup):
+    """Replace img tags with cid src by unlinked text representation"""
+    for img in soup.select("img"):
+        if str(img.get("src", "")).startswith("cid:"):
+            img.replace_with("{" + img["alt"] + "}")
+
+
 def direct_replacements(soup: bs4.BeautifulSoup):
     """Replace some classes of tags directly"""
     replace_hrs(soup)
     replace_headings(soup)
     replace_anchors(soup)
     unwrap_table_cells(soup)
+    replace_imgs(soup)
     soup.smooth()
-
-
-def replace_imgs(soup: bs4.BeautifulSoup) -> str:
-    """Replace img tags with approprate text representation"""
-    AUTOGEN = "Description automatically generated"
-    img_refs = {}
-    ref_counter = 0
-    for img in soup.select("img"):
-        img_ref = str(img.get("src", ""))
-        if img_ref not in img_refs:
-            ref_counter += 1
-            img_refs[img_ref] = ref_counter
-        alt_text = img.get("alt")
-        if alt_text and not alt_text.endswith(AUTOGEN):
-            alt_text = str(alt_text)
-        else:
-            alt_text = up.unquote(op.basename(up.urlparse(img_ref).path))
-            alt_text = alt_text.split(".")[0].replace("_", " ")
-        img.replace_with("{" + alt_text + "}{" + str(img_refs[img_ref]) + "}")
-    img_refs_text = (
-        (
-            "\n"
-            + "═" * 40
-            + "\n"
-            + "\n".join("{" + str(i) + "}: " + ref for ref, i in img_refs.items())
-            + "\n"
-            + "═" * 40
-        )
-        if img_refs
-        else ""
-    )
-    return img_refs_text
 
 
 def ul_compilation(soup: bs4.BeautifulSoup):
@@ -502,7 +490,7 @@ def tags2text(soup: bs4.BeautifulSoup):
     LINKBLOCKABLE = {"body", "section", "div", "p", "ol", "ul"}
     link_counter: int = 1
     link_block_tag = None
-    link_map: Dict[str, int] = dict()
+    link_map: Dict[(str, bool), int] = dict()
 
     def process_tag(tag: bs4.Tag):
         """Recursively replace composite tags by poor man's rich texts"""
@@ -519,6 +507,9 @@ def tags2text(soup: bs4.BeautifulSoup):
                     # print("_", end="")
             # Merge strings
             tag.smooth()
+        # Create link blocks
+        nonlocal link_counter
+        nonlocal link_block_tag
         # Anchors
         if tag.name == "a":
             href = str(tag.get("href", ""))
@@ -527,9 +518,7 @@ def tags2text(soup: bs4.BeautifulSoup):
                 ref = href
             else:
                 ref = href + f" ({title})"
-            if ref not in link_map:
-                nonlocal link_counter
-                nonlocal link_block_tag
+            if (ref, "a") not in link_map:
                 candidate = tag
                 if not link_block_tag:
                     linkblockable_found = False
@@ -542,22 +531,50 @@ def tags2text(soup: bs4.BeautifulSoup):
                             linkblockable_found = True
                         else:
                             candidate = candidate.parent
-                link_map[ref] = link_counter
+                link_map[(ref, "a")] = link_counter
                 link_counter += 1
             tag.insert(0, "[")
-            tag.append(f"][{link_map[ref]}]")
+            tag.append(f"][{link_map[(ref, 'a')]}]")
             tag.unwrap()
+            return
+        # Images
+        if tag.name == "img":
+            ref = str(tag.get("src", ""))
+            if (ref, "img") not in link_map:
+                candidate = tag
+                if not link_block_tag:
+                    linkblockable_found = False
+                    while not linkblockable_found:
+                        if candidate.name == "body" or (
+                            candidate.name in LINKBLOCKABLE
+                            and candidate.parent.name in LINKBLOCKABLE
+                        ):
+                            link_block_tag = candidate
+                            linkblockable_found = True
+                        else:
+                            candidate = candidate.parent
+                link_map[(ref, "img")] = link_counter
+                link_counter += 1
+            tag.replace_with(
+                "{" + tag["alt"] + "}{" + str(link_map[(ref, "img")]) + "}"
+            )
             return
         # link blocks
         if tag is link_block_tag:
             br = soup.new_tag("br")
             br["type"] = "linkblock-pre"
             tag.append(br)
-            for ref, k in sorted(link_map.items(), key=lambda pair: pair[1]):
+            for (ref, tag_name), k in sorted(
+                link_map.items(), key=lambda pair: pair[1]
+            ):
                 br = soup.new_tag("br")
                 br["type"] = "linkref"
                 tag.append(br)
-                tag.append(f"\t[{k}]: {ref}")
+                match tag_name:
+                    case "a":
+                        tag.append("\t[" + str(k) + "]: " + ref)
+                    case "img":
+                        tag.append("\t{" + str(k) + "}: " + ref)
             br = soup.new_tag("br")
             br["type"] = "linkblock-post"
             tag.append(br)
