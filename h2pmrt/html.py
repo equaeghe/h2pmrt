@@ -350,13 +350,13 @@ def replace_imgs(soup: bs4.BeautifulSoup):
             replacement = "{" + img["alt"] + "}"
             # Special case some common mini-images
             match replacement:
-                case "{Folder icon}":
+                case "{​Folder icon}":
                     replacement = "📁"
-                case "{docx icon}":
+                case "{​docx icon}":
                     replacement = "📝"
-                case "{xlsx icon}":
+                case "{​xlsx icon}":
                     replacement = "▦"
-                case "{pdf icon}":
+                case "{​pdf icon}":
                     replacement = "📄"
             img.replace_with(replacement)
 
