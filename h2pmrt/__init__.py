@@ -17,6 +17,7 @@ def convert(html_string: str) -> str:
     css.inline_style_blocks(soup)
     css.add_defaults(soup)
     css.css2html_markup(soup)
+    html.provide_alt_text(soup)
     html.sanitize_tree(soup)
     html.br_type_original(soup)
     undo.link_rewriting(soup)
@@ -31,14 +32,10 @@ def convert(html_string: str) -> str:
     html.direct_replacements(soup)
     html.merge_markup(soup)
     html.markup2text(soup)
-    img_refs = html.replace_imgs(soup)
     html.list_compilations(soup)
     html.tags2text(soup)
     html.unwrap_remaining(soup)
     html.cull_brs(soup)
     html.replace_blockquotes(soup)
     html.brs2linebreaks(soup)
-    output = str(soup.string).strip("\n")
-    if img_refs:
-        output += "\n" + img_refs
-    return output
+    return str(soup.string).strip()
