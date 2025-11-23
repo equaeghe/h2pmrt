@@ -1,4 +1,3 @@
-from typing_extensions import Dict
 import bs4
 import re
 import os.path as op
@@ -490,7 +489,7 @@ def tags2text(soup: bs4.BeautifulSoup):
     LINKBLOCKABLE = {"body", "section", "div", "p", "ol", "ul"}
     link_counter: int = 1
     link_block_tag = None
-    link_map: Dict[(str, bool), int] = dict()
+    link_map: dict[(str, bool), int] = dict()
 
     def process_tag(tag: bs4.Tag):
         """Recursively replace composite tags by poor man's rich texts"""
