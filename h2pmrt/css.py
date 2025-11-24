@@ -8,7 +8,11 @@ def inline_style_blocks(soup: bs4.BeautifulSoup):
     # Option 2: inline styles myself using tinycss2 and bs4
 
     # MS styles often encountered (hack until style blocks are inlined)
-    for tag in soup.select(".MsoNormal, .MsoListParagraph"):
+    MS_STYLES = (
+        ".MsoNormal, .MsoListParagraph, "
+        ".x_MsoNormal, .x_MsoListParagraph"  # class renaming in some replies
+    )
+    for tag in soup.select(MS_STYLES):
         if not tag.get("css-margin"):
             if not tag.get("css-margin-top"):
                 tag["css-margin-top"] = "0"
