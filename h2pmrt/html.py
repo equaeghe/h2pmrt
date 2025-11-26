@@ -612,62 +612,80 @@ def cull_brs(soup: bs4.BeautifulSoup):
         if prev and next and {prev.name, next.name} == {"br"}:
             ws.decompose()
     # Decompose some br tags considered superfluous
+    BR_CULLING_MAP = {
+        # no substitutions
+        ("margin-bottom", "margin-bottom", "any"): "keep",
+        ("margin-bottom", "padding-bottom", "any"): "keep",
+        ("margin-top", "margin-top", "any"): "keep",
+        ("padding-bottom", "padding-bottom", "any"): "keep",
+        ("padding-bottom", "linkblock-pre", "linkref"): "keep",
+        ("any", "linkblock-pre", "linkref"): "keep",
+        ("padding-top", "padding-top", "any"): "keep",
+        ("blocks", "any", "blocks"): "keep",
+        ("blocks", "margin-bottom", "margin-top"): "keep",
+        ("blocks", "padding-bottom", "padding-top"): "keep",
+        ("margin-top", "margin-bottom", "margin-top"): "keep",
+        ("padding-top", "padding-bottom", "any"): "keep",
+        ("blocks", "original", "any"): "keep",
+        ("blocks", "margin-bottom", "linkblock-pre"): "keep",
+        ("blocks", "margin-bottom", "original"): "keep",
+        (  # TODO: werkt niet? zie nieuwsbrief
+            "padding-bottom",
+            "original",
+            "original",
+        ): "keep",
+        # br["type"] = prev["type"]
+        (  # TODO: werkt niet? zie teams_meeting_quoted
+            "original",
+            "any",
+            "original",
+        ): "prev_to_br",
+        ("margin-bottom", "blocks", "margin-top"): "prev_to_br",
+        ("padding-bottom", "blocks", "padding-top"): "prev_to_br",
+        ("padding-bottom", "margin-bottom", "any"): "prev_to_br",
+        ("padding-bottom", "padding-top", "original"): "prev_to_br",
+        ("original", "padding-bottom", "padding-top"): "prev_to_br",
+        ("any", "blocks", "blocks"): "prev_to_br",
+        ("original", "original", "blocks"): "prev_to_br",
+        ("padding-top", "margin-top", "any"): "prev_to_br",
+        (  # TODO: werkt niet? zie nieuwsbrief
+            "original",
+            "original",
+            "padding-bottom",
+        ): "prev_to_br",
+        # next["type"] = br["type"], br["type"] = prev["type"]
+        ("margin-bottom", "margin-top", "blocks"): "shift_forward",
+        ("padding-bottom", "padding-top", "blocks"): "shift_forward",
+        ("original", "margin-top", "blocks"): "shift_forward",
+        ("padding-top", "original", "blocks"): "shift_forward",
+        ("linkblock-post", "margin-bottom", "blocks"): "shift_forward",
+    }
     maybe_superfluous = True
     while maybe_superfluous:
         maybe_superfluous = False
         for br in soup.select("br"):
+            br_type = br["type"]
             prev = br.previous_sibling
             if not (prev and prev.name == "br"):
                 continue
+            prev_type = prev["type"]
             next = br.next_sibling
             next_type = next["type"] if next and next.name == "br" else None
-            match (prev["type"], br["type"], next_type):
-                case ("margin-bottom", "blocks", "margin-top"):
-                    prev.decompose()
-                    br["type"] = "margin-bottom"
+            for (prev_tg, br_tg, next_tg), action in BR_CULLING_MAP.items():
+                if (
+                    prev_tg in {"any", prev_type}
+                    and br_tg in {"any", br_type}
+                    and next_tg in {"any", next_type}
+                ):
+                    prev.decompose()  # always prev to not break br-iteration
                     maybe_superfluous = True
-                case ("margin-bottom", "margin-top", "blocks"):
-                    prev.decompose()
-                    br["type"] = "margin-bottom"
-                    next["type"] = "margin-top"
-                    maybe_superfluous = True
-                case ("margin-bottom", "margin-bottom", _):
-                    prev.decompose()
-                    maybe_superfluous = True
-                case ("margin-top", "margin-top", _):
-                    prev.decompose()
-                    maybe_superfluous = True
-                case ("blocks", _, "blocks"):
-                    prev.decompose()
-                    maybe_superfluous = True
-                case ("blocks", "margin-bottom", "margin-top"):
-                    prev.decompose()
-                    maybe_superfluous = True
-                case ("margin-top", "margin-bottom", "margin-top"):
-                    prev.decompose()
-                    maybe_superfluous = True
-                case (_, "blocks", "blocks"):
-                    br["type"] = prev["type"]
-                    prev.decompose()
-                    maybe_superfluous = True
-                case ("original", "original", "blocks"):
-                    prev.decompose()
-                    next["type"] = "original"
-                    maybe_superfluous = True
-                case ("blocks", "original", _):
-                    prev.decompose()
-                    maybe_superfluous = True
-                case ("blocks", "margin-bottom", "linkblock-pre"):
-                    prev.decompose()
-                    maybe_superfluous = True
-                case ("blocks", "margin-bottom", "original"):
-                    prev.decompose()
-                    maybe_superfluous = True
-                case ("linkblock-post", "margin-bottom", "blocks"):
-                    prev.decompose()
-                    br["type"] = "linkblock-post"
-                    next["type"] = "margin-bottom"
-                    maybe_superfluous = True
+                    match action:
+                        case "prev_to_br":
+                            br["type"] = prev_type
+                        case "shift_forward":
+                            next["type"] = br_type
+                            br["type"] = prev_type
+                    break
 
 
 def replace_blockquotes(soup: bs4.BeautifulSoup):
