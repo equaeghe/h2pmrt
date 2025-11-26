@@ -26,6 +26,7 @@ def convert(html_string: str) -> str:
     html.sweat(soup)
     css.borderstyle2border(soup)
     css.border2tag(soup)
+    css.cssws2br("padding", soup)
     html.linebreak_blocks(soup)
     undo.ms_sender_identification(soup)
     html.remove_empty(soup)
