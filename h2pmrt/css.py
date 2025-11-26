@@ -120,7 +120,7 @@ def cssws2br(ws, soup: bs4.BeautifulSoup):
             tag[f"css-{ws}-bottom"] = styles[2 * (len(styles) > 2)]
     # Deal with top and bottom
     for position in {"top", "bottom"}:
-        for tag in soup.select(f"[css-{ws}-{position}]"):
+        for tag in soup.select(f"[css-{ws}-{position}][block]"):
             size = attr2float(tag[f"css-{ws}-{position}"])
             if size and size > 4:
                 br = soup.new_tag("br")
