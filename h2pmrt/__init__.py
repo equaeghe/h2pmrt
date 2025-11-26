@@ -22,7 +22,7 @@ def convert(html_string: str) -> str:
     html.br_type_original(soup)
     undo.link_rewriting(soup)
     html.direct_unwraps(soup)
-    css.cssmargin2br(soup)
+    css.cssws2br("margin", soup)
     html.sweat(soup)
     css.borderstyle2border(soup)
     css.border2tag(soup)

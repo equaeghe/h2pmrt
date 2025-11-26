@@ -105,22 +105,22 @@ def attr2float(attr):
         return float(str(attr))
 
 
-def cssmargin2br(soup: bs4.BeautifulSoup):
-    """Convert CSS margin properties to br tags"""
-    # Transform margin to margin-left, margin-top, and margin-bottom
-    for tag in soup.select("[css-margin]"):
-        styles = str(tag["css-margin"]).split()
-        if not tag.get("css-margin-top"):
-            tag["css-margin-top"] = styles[0]
-        if not tag.get("css-margin-bottom"):
-            tag["css-margin-bottom"] = styles[2 * (len(styles) > 2)]
-    # Deal with margin-top and margin-bottom
+def cssws2br(ws, soup: bs4.BeautifulSoup):
+    """Convert CSS margin and padding properties to br tags"""
+    # Transform margin/padding to left, top, and bottom specializations
+    for tag in soup.select(f"[css-{ws}]"):
+        styles = str(tag[f"css-{ws}"]).split()
+        if not tag.get(f"css-{ws}-top"):
+            tag[f"css-{ws}-top"] = styles[0]
+        if not tag.get(f"css-{ws}-bottom"):
+            tag[f"css-{ws}-bottom"] = styles[2 * (len(styles) > 2)]
+    # Deal with top and bottom
     for position in {"top", "bottom"}:
-        for tag in soup.select(f"[css-margin-{position}]"):
-            margin_size = attr2float(tag[f"css-margin-{position}"])
-            if margin_size and margin_size > 0:
+        for tag in soup.select(f"[css-{ws}-{position}]"):
+            size = attr2float(tag[f"css-{ws}-{position}"])
+            if size and size > 4:
                 br = soup.new_tag("br")
-                br["type"] = f"margin-{position}"
+                br["type"] = f"{ws}-{position}"
                 match position:
                     case "top":
                         tag.insert_before(br)
