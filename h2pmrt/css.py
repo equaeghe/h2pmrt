@@ -53,11 +53,38 @@ def cssprops2htmlattrs(soup: bs4.BeautifulSoup):
         )
         for decl in declarations:
             if decl.type == "declaration" and decl.name in PROPERTIES_OF_INTEREST:
-                tag["css-" + decl.name] = " ".join(
-                    str(value.value)
-                    for value in decl.value
-                    if not isinstance(value, tuple(UNINTERESTING_TOKENS))
-                )
+                values = []
+                for token in decl.value:
+                    if isinstance(token, tuple(UNINTERESTING_TOKENS)):
+                        continue
+                    if token.type == "dimension":
+                        # express all lengths as approximate line heights (https://developer.mozilla.org/en-US/docs/Web/CSS/Reference/Values/length)
+                        match token.lower_unit:
+                            case "px":
+                                values.append(str(token.value / 16))
+                            case "pt":
+                                values.append(str(token.value / 12))
+                            case "pc":
+                                values.append(str(token.value))
+                            case "ch" | "ex":
+                                values.append(str(token.value / 2))
+                            case "cap" | "em" | "ic" | "lh":
+                                values.append(str(token.value))
+                            case "rch" | "rex":
+                                values.append(str(token.value / 2))
+                            case "rcap" | "rem" | "ric" | "rlh":
+                                values.append(str(token.value))
+                            case "in":
+                                values.append(str(token.value * 6))
+                            case "cm":
+                                values.append(str(token.value * 6 / 2.54))
+                            case "mm":
+                                values.append(str(token.value * 6 / 25.4))
+                            case "Q":
+                                values.append(str(token.value * 6 / 25.4 / 4))
+                    else:
+                        values.append(str(token.value))
+                tag["css-" + decl.name] = " ".join(values)
         del tag["style"]
 
 
@@ -77,9 +104,9 @@ def add_defaults(soup: bs4.BeautifulSoup):
     for tag in soup.select(NONZERO_VERTICAL_MARGIN):
         if not tag.get("css-margin"):
             if not tag.get("css-margin-top"):
-                tag["css-margin-top"] = "6"
+                tag["css-margin-top"] = "1"
             if not tag.get("css-margin-bottom"):
-                tag["css-margin-bottom"] = "6"
+                tag["css-margin-bottom"] = "1"
 
 
 def css2html_markup(soup: bs4.BeautifulSoup):
@@ -122,7 +149,7 @@ def cssws2br(ws, soup: bs4.BeautifulSoup):
     for position in {"top", "bottom"}:
         for tag in soup.select(f"[css-{ws}-{position}][block]"):
             size = attr2float(tag[f"css-{ws}-{position}"])
-            if size and size > 4:
+            if size and size > 0.34:
                 br = soup.new_tag("br")
                 br["type"] = f"{ws}-{position}"
                 match position:
