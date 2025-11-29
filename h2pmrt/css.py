@@ -9,7 +9,7 @@ def inline_style_blocks(soup: bs4.BeautifulSoup):
 
     # MS styles often encountered (hack until style blocks are inlined)
     MS_STYLES = (
-        ".MsoNormal, .MsoListParagraph, "
+        ".MsoNormal, .MsoListParagraph, .elementtoproof, "
         ".x_MsoNormal, .x_MsoListParagraph"  # class renaming in some replies
     )
     for tag in soup.select(MS_STYLES):
