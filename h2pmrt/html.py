@@ -346,7 +346,8 @@ def unwrap_table_cells(soup: bs4.BeautifulSoup):
 def replace_imgs(soup: bs4.BeautifulSoup):
     """Replace img tags with cid src by unlinked text representation"""
     for img in soup.select("img"):
-        if str(img.get("src", "")).startswith("cid:"):
+        src = str(img.get("src", ""))
+        if src.startswith("cid:"):
             replacement = "{" + img["alt"] + "}"
             # Special case some common mini-images
             match replacement:
@@ -358,6 +359,9 @@ def replace_imgs(soup: bs4.BeautifulSoup):
                     replacement = "▦"
                 case "{​pdf icon}":
                     replacement = "📄"
+            img.replace_with(replacement)
+        elif src.startswith("data:"):
+            replacement = "{" + img["alt"] + "}"
             img.replace_with(replacement)
 
 
