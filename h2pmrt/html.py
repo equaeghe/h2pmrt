@@ -621,6 +621,7 @@ def cull_brs(soup: bs4.BeautifulSoup):
         ("margin-bottom", "margin-bottom", "any"): "keep",
         ("margin-bottom", "padding-bottom", "any"): "keep",
         ("margin-top", "margin-top", "any"): "keep",
+        ("margin-top", "padding-top", "any"): "keep",
         ("padding-bottom", "padding-bottom", "any"): "keep",
         ("padding-bottom", "linkblock-pre", "linkref"): "keep",
         ("any", "linkblock-pre", "linkref"): "keep",
