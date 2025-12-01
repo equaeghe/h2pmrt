@@ -147,8 +147,18 @@ def cssws2br(ws, soup: bs4.BeautifulSoup):
             tag[f"css-{ws}-bottom"] = styles[2 * (len(styles) > 2)]
     # Deal with top and bottom
     for position in {"top", "bottom"}:
-        for tag in soup.select(f"[css-{ws}-{position}][block]"):
-            size = attr2float(tag[f"css-{ws}-{position}"])
+        attr = f"css-{ws}-{position}"
+        # Move non-block margin/padding to parent block element
+        for tag in soup.select(f"[{attr}]:not([block])"):
+            parent = tag.parent
+            if parent.css.match("[block]"):
+                if not parent.get(attr):
+                    parent[attr] = tag[attr]
+                else:
+                    parent[attr] = max(parent[attr], tag[attr])
+        # Insert br if margin/padding size is large enough
+        for tag in soup.select(f"[{attr}][block]"):
+            size = attr2float(tag[attr])
             if size and size > 0.34:
                 br = soup.new_tag("br")
                 br["type"] = f"{ws}-{position}"
