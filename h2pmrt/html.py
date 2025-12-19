@@ -321,7 +321,13 @@ def replace_anchors(soup: bs4.BeautifulSoup):
             head = href_parts[0]
             tail = href_parts[-1]
             match (head, tail):
-                case ("", "") | ("mailto:", "") | ("tel:", "") | ("sms:", ""):
+                case (
+                    ("", "")
+                    | ("mailto:", "")
+                    | ("tel:", "")
+                    | ("sms:", "")
+                    | ("sip:", "")
+                ):
                     a.replace_with(text)
                 case ("http://", "") | ("http://", ""):
                     a.replace_with(href)
