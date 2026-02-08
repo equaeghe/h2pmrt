@@ -1,9 +1,13 @@
+import warnings
+
 import bs4
 
-import h2pmrt.text as text
 import h2pmrt.css as css
-import h2pmrt.undo as undo
 import h2pmrt.html as html
+import h2pmrt.text as text
+import h2pmrt.undo as undo
+
+warnings.filterwarnings("ignore", category=bs4.XMLParsedAsHTMLWarning)
 
 
 def convert(html_string: str) -> str:

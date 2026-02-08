@@ -1,7 +1,8 @@
-import bs4
-import re
 import os.path as op
+import re
 import urllib.parse as up
+
+import bs4
 
 
 def mark_blocks(soup: bs4.BeautifulSoup):
