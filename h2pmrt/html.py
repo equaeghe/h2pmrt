@@ -72,7 +72,7 @@ def provide_alt_text(soup: bs4.BeautifulSoup):
 
 def sanitize_tree(soup: bs4.BeautifulSoup):
     """Remove tags that can only get in the way"""
-    for tag in soup.select("head, style, meta"):
+    for tag in soup.select("head, style, meta, script"):
         tag.decompose()
     for comment in soup(string=lambda elem: isinstance(elem, bs4.Comment)):
         comment.decompose()
