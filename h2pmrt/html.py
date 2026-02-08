@@ -75,6 +75,8 @@ def sanitize_tree(soup: bs4.BeautifulSoup):
         tag.decompose()
     for comment in soup(string=lambda elem: isinstance(elem, bs4.Comment)):
         comment.decompose()
+    for doctype in soup(string=lambda elem: isinstance(elem, bs4.Doctype)):
+        doctype.decompose()
 
 
 def br_type_original(soup: bs4.BeautifulSoup):
