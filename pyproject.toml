@@ -16,7 +16,8 @@ classifiers = [
 dependencies = [
     "minify_html >= 0.16.0",
     "beautifulsoup4 >= 4.13.0",
-    "tinycss2 >= 1.4.0"
+    "tinycss2 >= 1.4.0",
+    "html5lib >= 1.1"
 ]
 dynamic = ["version"]
 
